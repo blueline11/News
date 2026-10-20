@@ -1,0 +1,142 @@
+{
+  "_note": "World news feed sources. section = where items land in News-Feed.html. Reuters and AP have no public RSS; they come in through Google News site: searches (headline + link only).",
+  "rss": [
+    {
+      "name": "BBC World",
+      "section": "World",
+      "url": "https://feeds.bbci.co.uk/news/world/rss.xml"
+    },
+    {
+      "name": "DW",
+      "section": "World",
+      "url": "https://rss.dw.com/rdf/rss-en-all"
+    },
+    {
+      "name": "France 24",
+      "section": "World",
+      "url": "https://www.france24.com/en/rss"
+    },
+    {
+      "name": "Al Jazeera",
+      "section": "World",
+      "url": "https://www.aljazeera.com/xml/rss/all.xml"
+    },
+    {
+      "name": "NPR News",
+      "section": "US",
+      "url": "https://feeds.npr.org/1001/rss.xml"
+    },
+    {
+      "name": "NPR Politics",
+      "section": "US",
+      "url": "https://feeds.npr.org/1014/rss.xml"
+    },
+    {
+      "name": "NPR Business",
+      "section": "Economy",
+      "url": "https://feeds.npr.org/1006/rss.xml"
+    },
+    {
+      "name": "Texas Tribune",
+      "section": "Texas",
+      "url": "https://feeds.texastribune.org/feeds/main/"
+    },
+    {
+      "name": "KUT Austin",
+      "section": "Texas",
+      "url": "https://www.kut.org/news.rss"
+    },
+    {
+      "name": "Daily Sabah",
+      "section": "Turkiye",
+      "url": "https://www.dailysabah.com/rss/turkiye"
+    },
+    {
+      "name": "Turkish Minute",
+      "section": "Turkiye",
+      "url": "https://www.turkishminute.com/feed/"
+    },
+    {
+      "name": "Japan Times",
+      "section": "World",
+      "url": "https://www.japantimes.co.jp/feed/"
+    },
+    {
+      "name": "SCMP Asia",
+      "section": "World",
+      "url": "https://www.scmp.com/rss/91/feed"
+    },
+    {
+      "name": "PBS NewsHour",
+      "section": "US",
+      "url": "https://www.pbs.org/newshour/feeds/rss/headlines"
+    },
+    {
+      "name": "Ars Technica",
+      "section": "Tech",
+      "url": "https://feeds.arstechnica.com/arstechnica/index"
+    },
+    {
+      "name": "The Verge",
+      "section": "Tech",
+      "url": "https://www.theverge.com/rss/index.xml"
+    },
+    {
+      "name": "ScienceDaily",
+      "section": "Science",
+      "url": "https://www.sciencedaily.com/rss/top/science.xml"
+    },
+    {
+      "name": "ESPN",
+      "section": "Sports",
+      "url": "https://www.espn.com/espn/rss/news"
+    },
+    {
+      "name": "CBS Sports",
+      "section": "Sports",
+      "url": "https://www.cbssports.com/rss/headlines/"
+    }
+  ],
+  "google_news": [
+    {
+      "name": "Reuters",
+      "section": "World",
+      "q": "site:reuters.com when:1d"
+    },
+    {
+      "name": "Reuters Business",
+      "section": "Economy",
+      "q": "site:reuters.com/business when:1d"
+    },
+    {
+      "name": "AP",
+      "section": "World",
+      "q": "site:apnews.com when:1d"
+    },
+    {
+      "name": "AP US",
+      "section": "US",
+      "q": "site:apnews.com politics when:1d"
+    },
+    {
+      "name": "AFP",
+      "section": "World",
+      "q": "site:afp.com OR \"(AFP)\" -police when:1d"
+    },
+    {
+      "name": "Austin local",
+      "section": "Texas",
+      "q": "site:kxan.com OR site:kvue.com OR site:kut.org OR site:statesman.com when:1d"
+    },
+    {
+      "name": "AP Health",
+      "section": "Science",
+      "q": "site:apnews.com health when:1d"
+    },
+    {
+      "name": "AP Entertainment",
+      "section": "Culture",
+      "q": "site:apnews.com entertainment when:1d"
+    }
+  ]
+}
