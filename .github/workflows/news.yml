@@ -4,6 +4,8 @@ on:
   schedule:
     - cron: "*/30 * * * *"   # every 30 minutes (GitHub may run it a few minutes late)
   workflow_dispatch:          # "Run workflow" button = update now
+  push:
+    branches: [main]          # also rebuild when the scripts or sources change
 
 permissions:
   contents: read
