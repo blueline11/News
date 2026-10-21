@@ -34,7 +34,7 @@ from markets import BOARD_CSS  # noqa: E402
 # how-to-refresh line under the title; the web copy sets its own
 HINT = os.environ.get("NEWS_HINT", "Updates by itself every 30 minutes.")
 CAP = 20
-TABS = ["Finance", "Top", "World", "US", "Texas", "Tech", "Science", "Turkiye", "Culture", "Sports"]
+TABS = ["Finance", "Markets", "Top", "World", "US", "Texas", "Tech", "Science", "Turkiye", "Culture", "Sports"]
 
 # Finance tab sub-groups, matched on the headline in this order; the last one takes the rest
 FIN_GROUPS = [
@@ -256,6 +256,9 @@ def main():
     for sec in TABS:
         sid = sec.lower()
         name = TITLES.get(sec, sec)
+        if sec == "Markets":
+            tabbar.append('<button data-tab="markets">Markets</button>')
+            continue
         if sec == "Top":
             cs = top
             inner = ['<p class="muted lede">Stories carried by 3 or more outlets.</p>']
@@ -289,11 +292,12 @@ def main():
             last_hour = hour
         latest.append(story(c, True))
 
-    board = ""
+    board = strip = ""
     if not os.environ.get("NEWS_NO_MARKETS"):
         try:
             import markets
             board = markets.board_html()
+            strip = markets.strip_html()
         except Exception as e:
             board = f'<div class="board"><p class="muted">Market data unavailable ({escape(str(e))}).</p></div>'
 
@@ -302,7 +306,7 @@ def main():
     html = TEMPLATE.format(
         when=escape(fmt(fetched, "%A, %B %d · %#I:%M %p CT")),
         total=total, raw=len(snap["items"]), hours=snap["hours"],
-        tabbar="".join(tabbar), board=board, panels="\n".join(panels),
+        tabbar="".join(tabbar), board=board, strip=strip, panels="\n".join(panels),
         latest="\n".join(latest), hint=HINT, failed=escape(failed),
         board_css=BOARD_CSS)
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
@@ -388,6 +392,7 @@ footer {{ margin-top:36px; color:var(--muted); font:13px/1.5 "Nunito Sans", syst
   <div class="tabs">{tabbar}</div>
   <div class="views"><button data-view="topic">By topic</button><button data-view="latest">Latest first</button></div>
 </div>
+<div id="strip" hidden>{strip}</div>
 <div id="board" class="boardcard" hidden>{board}</div>
 <div id="v-topic">
 {panels}
@@ -407,9 +412,12 @@ if (!tabs.some(b => b.dataset.tab === st.tab)) st.tab = tabs[0].dataset.tab;
 function render() {{
   tabs.forEach(b => b.classList.toggle("on", b.dataset.tab === st.tab));
   document.querySelectorAll(".views button").forEach(b => b.classList.toggle("on", b.dataset.view === st.view));
-  document.getElementById("board").hidden = st.tab !== "finance";
-  document.getElementById("v-topic").hidden = st.view !== "topic";
-  document.getElementById("v-latest").hidden = st.view !== "latest";
+  const mk = st.tab === "markets";
+  document.getElementById("strip").hidden = st.tab !== "finance";
+  document.getElementById("board").hidden = !mk;
+  document.querySelector(".views").style.display = mk ? "none" : "";
+  document.getElementById("v-topic").hidden = mk || st.view !== "topic";
+  document.getElementById("v-latest").hidden = mk || st.view !== "latest";
   document.querySelectorAll(".panel").forEach(p => p.hidden = p.dataset.tab !== st.tab);
   if (st.view === "latest") {{
     let head = null, any = false;
@@ -444,6 +452,7 @@ function ago() {{
 }}
 ago(); setInterval(ago, 60000);
 tabs.forEach(b => b.onclick = () => {{ st.tab = b.dataset.tab; render(); window.scrollTo(0, 0); }});
+document.querySelectorAll("[data-goto]").forEach(b => b.onclick = () => {{ st.tab = b.dataset.goto; render(); window.scrollTo(0, 0); }});
 document.querySelectorAll(".views button").forEach(b => b.onclick = () => {{ st.view = b.dataset.view; render(); }});
 render();
 </script>
