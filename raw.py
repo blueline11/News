@@ -133,6 +133,11 @@ WPOL = re.compile(
 # World Politics outlets that cover only politics; the rest are filtered with WPOL
 WP_DESKS = {"Politico Europe", "Foreign Policy", "The Diplomat", "The Africa Report", "Kyiv Independent",
             "Americas Quarterly"}
+# World Politics outlets whose non-political stories belong in World
+REGIONAL_CAP = 10
+WP_ALSO_WORLD = {"Middle East Eye", "Guardian World", "Euronews", "Meduza", "Moscow Times", "Haaretz",
+                 "Arab News", "Nikkei Asia", "CNA", "Yonhap", "The Hindu", "Hindustan Times", "AllAfrica",
+                 "MercoPress"}
 # outlets whose feed is all topics: keep only their US politics
 POLITICS_ONLY = {"Axios", "Semafor", "Washington Examiner", "Washington Examiner GN", "The Dispatch"}
 # Anadolu also covers world news; keep only its Turkey stories
@@ -152,6 +157,8 @@ def resection(it, t):
     if sec == "WorldPol":
         if it["source"] in WP_DESKS or WPOL.search(t):
             return "Politics" if US_DOM.search(t) and POL.search(t) else "WorldPol"
+        if it["source"] in WP_ALSO_WORLD and not SPORT.search(t) and not ECON.search(t):
+            return "World"
         return None
     if it["source"] in POLITICS_ONLY:
         return "Politics" if POL.search(t) else None
@@ -204,7 +211,7 @@ def label(it):
         return "BBC"
     if s.startswith("NPR"):
         return "NPR"
-    if s in ("WSJ", "Bloomberg", "Benzinga", "WSJ Politics", "Washington Post", "Punchbowl News",
+    if s in ("WSJ", "Bloomberg", "Benzinga", "CNN", "Middle East Eye", "WSJ Politics", "Washington Post", "Punchbowl News",
              "USA Today", "Washington Examiner GN"):
         s = {"WSJ Politics": "WSJ", "Washington Examiner GN": "Washington Examiner",
              "Punchbowl News": "Punchbowl"}.get(s, s)
@@ -218,7 +225,7 @@ def label(it):
     for brand in ("CNBC", "MarketWatch"):
         if s.startswith(brand):
             return brand
-    names = {"Guardian World": "Guardian", "FT World": "FT", "NYT Politics": "NYT", "LA Times Politics": "LA Times", "Fox News Politics": "Fox News",
+    names = {"Guardian World": "Guardian", "FT World": "FT", "NYT Politics": "NYT", "NYT World": "NYT", "LA Times Politics": "LA Times", "Fox News Politics": "Fox News",
              "WSJ Politics": "WSJ", "Washington Examiner GN": "Washington Examiner",
              "Washington Post": "Washington Post", "Punchbowl News": "Punchbowl", "USA Today": "USA Today"}
     if s in names:
@@ -233,8 +240,8 @@ def main():
                        check=False, stdout=subprocess.DEVNULL)
     snap = json.load(open(os.path.join(BASE, "snapshot.json"), encoding="utf-8"))
 
-    items = []
-    for it in snap["items"]:
+    items, regional = [], {}
+    for it in snap["items"]:  # newest first
         t = clean_title(it)
         if not t or JUNK.search(t):
             continue
@@ -244,6 +251,11 @@ def main():
         it = dict(it, title=t, w=words(t), label=label(it), section=sec)
         if len(it["w"]) < 2:
             continue
+        if sec == "World" and it["source"] in WP_ALSO_WORLD:
+            # regional outlets add a voice to World, not a flood: newest REGIONAL_CAP each
+            regional[it["source"]] = regional.get(it["source"], 0) + 1
+            if regional[it["source"]] > REGIONAL_CAP:
+                continue
         items.append(it)
 
     # greedy clustering on headline word overlap, rare words weighted higher (idf)

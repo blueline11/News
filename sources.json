@@ -252,11 +252,6 @@
       "url": "https://www.arabnews.com/rss.xml"
     },
     {
-      "name": "Middle East Eye",
-      "section": "WorldPol",
-      "url": "https://www.middleeasteye.net/rss.xml"
-    },
-    {
       "name": "Nikkei Asia",
       "section": "WorldPol",
       "url": "https://asia.nikkei.com/rss/feed/nar"
@@ -290,6 +285,21 @@
       "name": "MercoPress",
       "section": "WorldPol",
       "url": "https://en.mercopress.com/rss/"
+    },
+    {
+      "name": "NYT World",
+      "section": "World",
+      "url": "https://rss.nytimes.com/services/xml/rss/nyt/World.xml"
+    },
+    {
+      "name": "NPR World",
+      "section": "World",
+      "url": "https://feeds.npr.org/1004/rss.xml"
+    },
+    {
+      "name": "Al-Monitor",
+      "section": "World",
+      "url": "https://www.al-monitor.com/rss"
     }
   ],
   "google_news": [
@@ -377,6 +387,16 @@
       "name": "Americas Quarterly",
       "section": "WorldPol",
       "q": "site:americasquarterly.org when:2d"
+    },
+    {
+      "name": "CNN",
+      "section": "World",
+      "q": "site:edition.cnn.com when:1d"
+    },
+    {
+      "name": "Middle East Eye",
+      "section": "WorldPol",
+      "q": "site:middleeasteye.net when:1d"
     }
   ]
 }
