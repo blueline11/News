@@ -64,7 +64,7 @@ JUNK = re.compile(
     r"launches online|co-marketing|partnership to advance|world's smallest|"
     r"the afp top 10|afp recognizes|^watch:|all the goals|best plays|morning news brief|"
     r"morning bid|commentary:|press review|enforcement actions? with|"
-    r"termination of enforcement", re.I)
+    r"termination of enforcement|best .{0,30}stocks? (right now|to buy)|stocks? to watch (today|this week)|stocks moving in", re.I)
 
 STOP = set("""a an the of to in on for and or as at by with from after over amid into
 is are was were be been its it his her their this that new says say said will could
@@ -144,6 +144,7 @@ def clean_title(it):
     t = re.sub(r"^STAT\+:\s*", "", t)  # STAT's paywall marker
     if it["outlet"]:  # Google News appends " - Outlet"
         t = re.sub(r"\s+-\s+[^-]+$", "", t)
+        t = re.sub(r"\s+-\s+[^-]*\((NASDAQ|NYSE|AMEX|OTC|NYSEAMERICAN|CBOE)[^)]*\)$", "", t)
     return t.strip()
 
 
@@ -166,7 +167,7 @@ def label(it):
         return "BBC"
     if s.startswith("NPR"):
         return "NPR"
-    if s in ("WSJ", "Bloomberg"):
+    if s in ("WSJ", "Bloomberg", "Benzinga"):
         return s
     if s.startswith(("Reuters", "AP", "AFP")) and it["outlet"]:
         base = s.split(" ")[0]
@@ -352,7 +353,7 @@ TEMPLATE = """<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="refresh" content="900">
-<title>News Raw</title>
+<title>News</title>
 <link rel="apple-touch-icon" href="icon.png">
 <meta name="apple-mobile-web-app-title" content="News">
 <meta name="apple-mobile-web-app-capable" content="yes">

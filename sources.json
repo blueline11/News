@@ -192,6 +192,11 @@
       "name": "Bloomberg",
       "section": "World",
       "q": "site:bloomberg.com when:1d"
+    },
+    {
+      "name": "Benzinga",
+      "section": "Finance",
+      "q": "site:benzinga.com when:1d"
     }
   ]
 }
