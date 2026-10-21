@@ -576,7 +576,7 @@ footer {{ margin-top:36px; color:var(--muted); font:13px/1.5 "Source Sans 3", sy
   <div class="views splitviews" data-for="politics"><button data-view="us">US</button><button data-view="world">World</button><button data-view="latest">Latest first</button></div>
   <div class="views splitviews" data-for="tech"><button data-view="ai">AI</button><button data-view="gear">Tech</button><button data-view="latest">Latest first</button></div>
   <div class="views splitviews" data-for="science"><button data-view="sci">Science</button><button data-view="health">Health</button><button data-view="latest">Latest first</button></div>
-  <div class="views splitviews" data-for="turkiye"><button data-view="en">English</button><button data-view="tr">Türkçe</button><button data-view="latest">Latest first</button></div>
+  <div class="views splitviews" data-for="turkiye"><button data-view="tr">Türkçe</button><button data-view="en">English</button><button data-view="latest">Latest first</button></div>
   <div class="views splitviews" data-for="texas"><button data-view="austin">Austin</button><button data-view="state">Texas</button><button data-view="latest">Latest first</button></div>
 </div>
 <div id="strip" hidden>{strip}</div>
@@ -595,7 +595,7 @@ Feeds that failed: {failed}.</footer>
 <script>
 const st = {{ tab: "finance", view: "topic" }};
 // tabs split into sub-views: view name -> panel
-const SPLIT = {{ politics: {{ us: "politics", world: "worldpol" }}, texas: {{ austin: "austin", state: "texas" }}, tech: {{ ai: "ai", gear: "tech" }}, science: {{ sci: "science", health: "health" }}, turkiye: {{ en: "turkiye", tr: "turkiyetr" }} }};
+const SPLIT = {{ politics: {{ us: "politics", world: "worldpol" }}, texas: {{ austin: "austin", state: "texas" }}, tech: {{ ai: "ai", gear: "tech" }}, science: {{ sci: "science", health: "health" }}, turkiye: {{ tr: "turkiyetr", en: "turkiye" }} }};
 const SUBVIEWS = ["us", "world", "austin", "state", "ai", "gear", "sci", "health", "en", "tr"];
 try {{ Object.assign(st, JSON.parse(localStorage.getItem("newsState") || "{{}}")); }} catch (e) {{}}
 const tabs = [...document.querySelectorAll(".tabs button")];
