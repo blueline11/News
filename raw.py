@@ -158,6 +158,8 @@ def label(it):
         return "BBC"
     if s.startswith("NPR"):
         return "NPR"
+    if s == "WSJ":
+        return "WSJ"
     if s.startswith(("Reuters", "AP", "AFP")) and it["outlet"]:
         base = s.split(" ")[0]
         o = it["outlet"]

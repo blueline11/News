@@ -177,6 +177,11 @@
       "name": "Anadolu",
       "section": "Turkiye",
       "q": "site:aa.com.tr/en (Türkiye OR Turkish OR Turkey OR Erdogan OR Ankara OR Istanbul) when:1d"
+    },
+    {
+      "name": "WSJ",
+      "section": "Finance",
+      "q": "site:wsj.com/finance OR site:wsj.com/business OR site:wsj.com/economy when:1d"
     }
   ]
 }
