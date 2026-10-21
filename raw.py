@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Script-only news page (no AI): fetch feeds, merge look-alike headlines,
-rank by how many outlets carry a story, write ../News-Raw.html.
+rank by how many outlets carry a story, write public/index.html.
+Published by .github/workflows/news.yml to https://blueline11.github.io/News/
 
 Usage:  python raw.py            (fetches first, then renders)
         python raw.py --no-fetch (render from the existing snapshot.json)
-Meant to run unattended from Windows Task Scheduler.
+Runs on GitHub Actions every 30 minutes; a local run is only for testing.
 """
 import json
 import math
@@ -21,7 +22,7 @@ except Exception:
     pass
 
 BASE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.environ.get("NEWS_OUT") or os.path.join(os.path.dirname(BASE), "News-Raw.html")
+OUT = os.environ.get("NEWS_OUT") or os.path.join(BASE, "public", "index.html")
 try:
     from zoneinfo import ZoneInfo
     CT = ZoneInfo("America/Chicago")  # handles daylight saving
@@ -31,8 +32,7 @@ sys.path.insert(0, BASE)  # trusted: our own folder (python -I drops it)
 from markets import BOARD_CSS  # noqa: E402
 
 # how-to-refresh line under the title; the web copy sets its own
-HINT = os.environ.get("NEWS_HINT",
-                      "To refresh: double-click <b>Update-News.bat</b> in the News folder.")
+HINT = os.environ.get("NEWS_HINT", "Updates by itself every 30 minutes.")
 CAP = 20
 TABS = ["Finance", "Top", "World", "US", "Texas", "Tech", "Science", "Turkiye", "Culture", "Sports"]
 
@@ -305,6 +305,7 @@ def main():
         tabbar="".join(tabbar), board=board, panels="\n".join(panels),
         latest="\n".join(latest), hint=HINT, failed=escape(failed),
         board_css=BOARD_CSS)
+    os.makedirs(os.path.dirname(OUT), exist_ok=True)
     open(OUT, "w", encoding="utf-8").write(html)
     print(f"wrote {OUT}: {total} stories from {len(snap['items'])} items")
 
