@@ -123,7 +123,7 @@
     },
     {
       "name": "NPR Arts",
-      "section": "Culture",
+      "section": "CultureMix",
       "url": "https://feeds.npr.org/1008/rss.xml"
     },
     {
@@ -560,6 +560,76 @@
       "name": "Yetkin Report",
       "section": "TurkiyeTR",
       "url": "https://yetkinreport.com/feed/"
+    },
+    {
+      "name": "Hollywood Reporter",
+      "section": "Culture",
+      "url": "https://www.hollywoodreporter.com/feed/"
+    },
+    {
+      "name": "Deadline",
+      "section": "Culture",
+      "url": "https://deadline.com/feed/"
+    },
+    {
+      "name": "IndieWire",
+      "section": "Culture",
+      "url": "https://www.indiewire.com/feed/"
+    },
+    {
+      "name": "Pitchfork",
+      "section": "Music",
+      "url": "https://pitchfork.com/feed/feed-news/rss"
+    },
+    {
+      "name": "Rolling Stone",
+      "section": "Music",
+      "url": "https://www.rollingstone.com/feed/"
+    },
+    {
+      "name": "Billboard",
+      "section": "Music",
+      "url": "https://www.billboard.com/feed/"
+    },
+    {
+      "name": "NPR Music",
+      "section": "Music",
+      "url": "https://feeds.npr.org/1039/rss.xml"
+    },
+    {
+      "name": "NYT Books",
+      "section": "Arts",
+      "url": "https://rss.nytimes.com/services/xml/rss/nyt/Books.xml"
+    },
+    {
+      "name": "Literary Hub",
+      "section": "Arts",
+      "url": "https://lithub.com/feed/"
+    },
+    {
+      "name": "Hyperallergic",
+      "section": "Arts",
+      "url": "https://hyperallergic.com/feed/"
+    },
+    {
+      "name": "Smithsonian",
+      "section": "Arts",
+      "url": "https://www.smithsonianmag.com/rss/latest_articles/"
+    },
+    {
+      "name": "Eater",
+      "section": "Arts",
+      "url": "https://www.eater.com/rss/index.xml"
+    },
+    {
+      "name": "NYT Arts",
+      "section": "CultureMix",
+      "url": "https://rss.nytimes.com/services/xml/rss/nyt/Arts.xml"
+    },
+    {
+      "name": "Guardian Culture",
+      "section": "CultureMix",
+      "url": "https://www.theguardian.com/culture/rss"
     }
   ],
   "google_news": [
