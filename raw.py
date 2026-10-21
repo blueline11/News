@@ -27,12 +27,33 @@ try:
     CT = ZoneInfo("America/Chicago")  # handles daylight saving
 except Exception:
     CT = timezone(timedelta(hours=-6))
+sys.path.insert(0, BASE)  # trusted: our own folder (python -I drops it)
+from markets import BOARD_CSS  # noqa: E402
+
 # how-to-refresh line under the title; the web copy sets its own
 HINT = os.environ.get("NEWS_HINT",
                       "To refresh: double-click <b>Update-News.bat</b> in the News folder.")
 CAP = 20
-SECTIONS = ["World", "US", "Texas", "Economy", "Tech", "Science", "Turkiye", "Culture", "Sports"]
-TITLES = {"Texas": "Texas & Austin", "Tech": "Tech", "Science": "Science & Health",
+TABS = ["Finance", "Top", "World", "US", "Texas", "Tech", "Science", "Turkiye", "Culture", "Sports"]
+
+# Finance tab sub-groups, matched on the headline in this order; the last one takes the rest
+FIN_GROUPS = [
+    ("Fed & rates", re.compile(r"\b(fed|federal reserve|powell|rate (hike|cut)s?|interest rates?|treasur\w*|"
+                               r"yields?|central bank|ecb|bank of (japan|england|canada)|boj|boe)\b", re.I)),
+    ("Economic data", re.compile(r"\b(inflation|cpi|ppi|jobs report|payrolls?|unemployment|jobless|gdp|"
+                                 r"retail sales|pmi|consumer (confidence|sentiment|spending)|housing starts|"
+                                 r"home sales|homebuilders?|recession|economy|economic)\b", re.I)),
+    ("Energy & commodities", re.compile(r"\b(oil|crude|brent|opec\+?|natural gas|lng|gasoline|diesel|fuel|"
+                                        r"gold|silver|copper|commodit\w*|hormuz|refiner\w*|tankers?)\b", re.I)),
+    ("Policy, trade & geopolitics", re.compile(r"\b(tariffs?|sanctions?|trade (deal|war|talks)|export (ban|controls?)|"
+                                               r"embargo|stimulus|budget|deficit|debt|shutdown|subsid\w*)\b", re.I)),
+    ("Companies & markets", None),
+]
+# World/US stories that also belong under Finance
+MARKET_PULL = re.compile(r"\b(oil|crude|brent|opec|hormuz|tariffs?|sanctions?|trade (deal|war|talks)|"
+                         r"fed|federal reserve|central bank|bond yields?|treasury yields?|"
+                         r"export (ban|controls?)|stock markets?|wall st(reet)?)\b", re.I)
+TITLES = {"Top": "Top stories", "Texas": "Texas & Austin", "Tech": "Tech", "Science": "Science & Health",
           "Turkiye": "Türkiye"}
 
 # headlines that are never news
@@ -81,8 +102,8 @@ def resection(it, t):
         if SPORT.search(t):
             return "Sports"
         if ECON.search(t):
-            return "Economy"
-    return sec
+            return "Finance"
+    return "Finance" if sec == "Economy" else sec
 
 
 def fmt(d, f):
@@ -122,7 +143,10 @@ def label(it):
         return base if o.lower().startswith((base.lower(), "afp.com", "ap news")) else o
     if s == "Austin local":
         return it["outlet"] or "Local"
-    return {"SCMP Asia": "SCMP"}.get(s, s)
+    for brand in ("CNBC", "MarketWatch"):
+        if s.startswith(brand):
+            return brand
+    return {"SCMP Asia": "SCMP", "WSJ Markets": "WSJ", "Federal Reserve": "Fed"}.get(s, s)
 
 
 def main():
@@ -200,38 +224,61 @@ def main():
             summ = ""
         summ = (summ[:260] + "…") if len(summ) > 260 else summ
         p = f"<p>{escape(summ)}</p>" if summ else ""
-        return (f'<article class="story"><h3>{escape(lead["title"])}</h3>{p}'
+        tabs = " ".join(sorted(c["tabs"]))
+        return (f'<article class="story" data-tabs="{tabs}"><h3>{escape(lead["title"])}</h3>{p}'
                 f'<div class="meta">{sec}{badge}<span>{t}</span>'
                 f'<span class="src">{" · ".join(links)}</span></div></article>')
 
-    top = sorted([c for c in clusters if c["n"] >= 3], key=lambda c: (-c["n"], c["time"]))[:10]
-    top_ids = {id(c) for c in top}
+    def ranked(cs):
+        # stories carried by several outlets first, then newest
+        return sorted(cs, key=lambda c: (min(c["n"], 3), c["time"]), reverse=True)
 
-    nav = ['<a href="#most-covered">Most covered</a>']
-    body = ['<section id="most-covered"><h2>Most covered<span class="count">stories carried by 3+ outlets</span></h2>']
-    body += [story(c, True) for c in top]
-    body.append("</section>")
-    total = len(top)
-    for sec in SECTIONS:
-        cs = [c for c in clusters if c["section"] == sec and id(c) not in top_ids]
-        cs.sort(key=lambda c: (-min(c["n"], 3), c["time"]), reverse=False)
-        cs.sort(key=lambda c: c["time"], reverse=True)
-        cs.sort(key=lambda c: min(c["n"], 3), reverse=True)  # multi-outlet first, then newest
+    def capped(cs, name):
+        out = [story(c) for c in cs[:CAP]]
+        if len(cs) > CAP:
+            out.append(f'<details><summary>{len(cs) - CAP} more in {escape(name)}</summary>')
+            out += [story(c) for c in cs[CAP:]]
+            out.append("</details>")
+        return out
+
+    # which tabs each story belongs to: its own section, plus Finance for market-moving
+    # World/US news (oil, tariffs, the Fed...), plus Top for the most-covered ones
+    for c in clusters:
+        c["tabs"] = {c["section"].lower()}
+        if c["section"] != "Finance" and MARKET_PULL.search(c["lead"]["title"]):
+            c["tabs"].add("finance")
+    top = sorted([c for c in clusters if c["n"] >= 3], key=lambda c: (-c["n"], c["time"]))[:10]
+    for c in top:
+        c["tabs"].add("top")
+
+    panels, tabbar, total = [], [], 0
+    for sec in TABS:
+        sid = sec.lower()
+        name = TITLES.get(sec, sec)
+        if sec == "Top":
+            cs = top
+            inner = ['<p class="muted lede">Stories carried by 3 or more outlets.</p>']
+            inner += [story(c, True) for c in cs]
+        elif sec == "Finance":
+            cs = [c for c in clusters if "finance" in c["tabs"]]
+            inner = []
+            for g, rx in FIN_GROUPS:
+                gs = ranked([c for c in cs if c.get("fg") is None and (rx is None or rx.search(c["lead"]["title"]))])
+                for c in gs:
+                    c["fg"] = g
+                if gs:
+                    inner.append(f'<h3 class="fgroup">{escape(g)}<span class="count">{len(gs)}</span></h3>')
+                    inner += capped(gs, g)
+        else:
+            cs = ranked([c for c in clusters if c["section"] == sec])
+            inner = capped(cs, name)
         if not cs:
             continue
-        name = TITLES.get(sec, sec)
-        sid = sec.lower()
-        nav.append(f'<a href="#{sid}">{escape(name)}</a>')
-        body.append(f'<section id="{sid}"><h2>{escape(name)}<span class="count">{len(cs)}</span></h2>')
-        body += [story(c) for c in cs[:CAP]]
-        if len(cs) > CAP:
-            body.append(f'<details><summary>{len(cs) - CAP} more in {escape(name)}</summary>')
-            body += [story(c) for c in cs[CAP:]]
-            body.append("</details>")
-        body.append("</section>")
-        total += len(cs)
+        total += len(cs) if sec != "Top" else 0
+        tabbar.append(f'<button data-tab="{sid}">{escape(name)}</button>')
+        panels.append(f'<section class="panel" data-tab="{sid}" hidden>' + "\n".join(inner) + "</section>")
 
-    # "Latest first" view: every story in one timeline, hour headings
+    # "Latest first" view: every story in one timeline, hour headings; filtered by tab in JS
     latest, last_hour = [], None
     for c in sorted([c for c in clusters if c["time"]], key=lambda c: c["time"], reverse=True):
         d = datetime.fromisoformat(c["time"]).astimezone(CT)
@@ -241,12 +288,22 @@ def main():
             last_hour = hour
         latest.append(story(c, True))
 
+    board = ""
+    if not os.environ.get("NEWS_NO_MARKETS"):
+        try:
+            import markets
+            board = markets.board_html()
+        except Exception as e:
+            board = f'<div class="board"><p class="muted">Market data unavailable ({escape(str(e))}).</p></div>'
+
     fetched = datetime.fromisoformat(snap["fetched_at"]).astimezone(CT)
     failed = ", ".join(snap["failed"]) or "none"
     html = TEMPLATE.format(
         when=escape(fmt(fetched, "%A, %B %d · %#I:%M %p CT")),
         total=total, raw=len(snap["items"]), hours=snap["hours"],
-        nav="".join(nav), body="\n".join(body), latest="\n".join(latest), hint=HINT, failed=escape(failed))
+        tabbar="".join(tabbar), board=board, panels="\n".join(panels),
+        latest="\n".join(latest), hint=HINT, failed=escape(failed),
+        board_css=BOARD_CSS)
     open(OUT, "w", encoding="utf-8").write(html)
     print(f"wrote {OUT}: {total} stories from {len(snap['items'])} items")
 
@@ -263,53 +320,61 @@ TEMPLATE = """<!doctype html>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
 :root {{ --bg:#faf8f4; --fg:#1f1d1a; --muted:#6b665e; --line:#e4dfd6; --accent:#2d5a5a;
-  --badge:#e2ece9; --link:#2d5a8a; }}
+  --badge:#e2ece9; --link:#2d5a8a; --up:#1d7a3e; --dn:#b3261e; }}
 @media (prefers-color-scheme: dark) {{ :root:not([data-theme="light"]) {{
   --bg:#17161a; --fg:#e8e4dc; --muted:#9a958c; --line:#2c2a30; --accent:#8cc7c0;
-  --badge:#22312f; --link:#8fb6e0; }} }}
+  --badge:#22312f; --link:#8fb6e0; --up:#5fc787; --dn:#ff8a80; }} }}
 :root[data-theme="dark"] {{ --bg:#17161a; --fg:#e8e4dc; --muted:#9a958c; --line:#2c2a30;
-  --accent:#8cc7c0; --badge:#22312f; --link:#8fb6e0; }}
+  --accent:#8cc7c0; --badge:#22312f; --link:#8fb6e0; --up:#5fc787; --dn:#ff8a80; }}
 * {{ box-sizing:border-box; }}
 body {{ margin:0; background:var(--bg); color:var(--fg);
   font:17px/1.55 Georgia, "Times New Roman", serif; }}
 .wrap {{ max-width:760px; margin:0 auto; padding:0 16px 80px; }}
-header {{ padding:32px 0 10px; border-bottom:1px solid var(--line); }}
+header {{ padding:28px 0 8px; }}
 h1 {{ margin:0; font-size:28px; }}
 .sub {{ color:var(--muted); font:14px system-ui, sans-serif; margin-top:4px; }}
-nav {{ position:sticky; top:0; background:var(--bg); border-bottom:1px solid var(--line);
-  padding:10px 0; display:flex; flex-wrap:wrap; gap:6px 16px; font:14px system-ui, sans-serif; z-index:2; }}
-nav a {{ color:var(--muted); text-decoration:none; }}
-section {{ padding-top:26px; scroll-margin-top:48px; }}
-h2 {{ font-size:21px; margin:0 0 4px; color:var(--accent); border-bottom:2px solid var(--accent); padding-bottom:4px; }}
-.count {{ font:13px system-ui, sans-serif; color:var(--muted); margin-left:10px; }}
+.bar {{ position:sticky; top:0; z-index:3; background:var(--bg); border-bottom:1px solid var(--line);
+  padding:8px 0; }}
+.tabs {{ display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; font:14px system-ui, sans-serif; }}
+.tabs::-webkit-scrollbar {{ display:none; }}
+.tabs button {{ flex:none; font:inherit; padding:6px 12px; border-radius:16px; cursor:pointer;
+  border:1px solid var(--line); background:transparent; color:var(--muted); }}
+.tabs button.on {{ background:var(--accent); border-color:var(--accent); color:var(--bg); }}
+.views {{ display:flex; gap:14px; margin-top:8px; font:13px system-ui, sans-serif; }}
+.views button {{ font:inherit; border:0; background:none; padding:2px 0; cursor:pointer; color:var(--muted);
+  border-bottom:2px solid transparent; }}
+.views button.on {{ color:var(--fg); border-bottom-color:var(--accent); }}
+.panel {{ padding-top:10px; }}
+h3.fgroup {{ font:600 15px system-ui, sans-serif; color:var(--accent); margin:26px 0 0;
+  padding-bottom:4px; border-bottom:2px solid var(--accent); }}
+h4.group {{ font:600 13px system-ui, sans-serif; text-transform:uppercase; letter-spacing:.06em;
+  color:var(--muted); margin:18px 0 2px; }}
+.count {{ font:13px system-ui, sans-serif; color:var(--muted); margin-left:10px; font-weight:400; }}
+.lede {{ font:14px system-ui, sans-serif; margin:10px 0 0; }}
 .story {{ padding:11px 0; border-bottom:1px solid var(--line); }}
 .story h3 {{ font-size:18px; margin:0 0 3px; line-height:1.35; }}
 .story p {{ margin:0 0 5px; font-size:16px; }}
 .meta {{ font:13px system-ui, sans-serif; color:var(--muted); display:flex; flex-wrap:wrap; gap:4px 12px; align-items:center; }}
 .meta a {{ color:var(--link); text-decoration:none; }}
 .n, .sec {{ background:var(--badge); color:var(--accent); padding:1px 6px; border-radius:3px; font-weight:600; font-size:11px; }}
-.views {{ display:flex; gap:8px; padding:14px 0 4px; font:14px system-ui, sans-serif; }}
-.views button {{ font:inherit; padding:6px 14px; border-radius:16px; cursor:pointer;
-  border:1px solid var(--line); background:transparent; color:var(--muted); }}
-.views button.on {{ background:var(--accent); border-color:var(--accent); color:var(--bg); }}
 h4.hour {{ font:600 13px system-ui, sans-serif; text-transform:uppercase; letter-spacing:.06em;
-  color:var(--accent); margin:22px 0 0; padding-bottom:4px; border-bottom:1px solid var(--line);
-  position:sticky; top:0; background:var(--bg); }}
+  color:var(--accent); margin:22px 0 0; padding-bottom:4px; border-bottom:1px solid var(--line); }}
 details {{ margin-top:8px; }}
 summary {{ cursor:pointer; color:var(--link); font:14px system-ui, sans-serif; padding:10px 0; }}
 footer {{ margin-top:36px; color:var(--muted); font:13px/1.5 system-ui, sans-serif; }}
+{board_css}
 </style>
 </head>
 <body><div class="wrap">
-<header><h1>News — raw</h1>
+<header><h1>News</h1>
 <div class="sub">{when} · {total} stories (from {raw} items, last {hours}h) · no AI, auto-built<br>{hint}</div></header>
-<div class="views" role="tablist">
-  <button id="b-topic" class="on" onclick="show('topic')">By topic</button>
-  <button id="b-latest" onclick="show('latest')">Latest first</button>
+<div class="bar">
+  <div class="tabs">{tabbar}</div>
+  <div class="views"><button data-view="topic">By topic</button><button data-view="latest">Latest first</button></div>
 </div>
+<div id="board" hidden>{board}</div>
 <div id="v-topic">
-<nav>{nav}</nav>
-{body}
+{panels}
 </div>
 <div id="v-latest" hidden>
 {latest}
@@ -319,14 +384,32 @@ carry them. Summaries are the outlets' own feed text. Page reloads itself every 
 Feeds that failed: {failed}.</footer>
 </div>
 <script>
-function show(v) {{
-  for (const k of ["topic", "latest"]) {{
-    document.getElementById("v-" + k).hidden = k !== v;
-    document.getElementById("b-" + k).classList.toggle("on", k === v);
+const st = {{ tab: "finance", view: "topic" }};
+try {{ Object.assign(st, JSON.parse(localStorage.getItem("newsState") || "{{}}")); }} catch (e) {{}}
+const tabs = [...document.querySelectorAll(".tabs button")];
+if (!tabs.some(b => b.dataset.tab === st.tab)) st.tab = tabs[0].dataset.tab;
+function render() {{
+  tabs.forEach(b => b.classList.toggle("on", b.dataset.tab === st.tab));
+  document.querySelectorAll(".views button").forEach(b => b.classList.toggle("on", b.dataset.view === st.view));
+  document.getElementById("board").hidden = st.tab !== "finance";
+  document.getElementById("v-topic").hidden = st.view !== "topic";
+  document.getElementById("v-latest").hidden = st.view !== "latest";
+  document.querySelectorAll(".panel").forEach(p => p.hidden = p.dataset.tab !== st.tab);
+  if (st.view === "latest") {{
+    let head = null, any = false;
+    const close = () => {{ if (head) head.hidden = !any; }};
+    for (const el of document.getElementById("v-latest").children) {{
+      if (el.tagName === "H4") {{ close(); head = el; any = false; continue; }}
+      const show = el.dataset.tabs.split(" ").includes(st.tab);
+      el.hidden = !show; any = any || show;
+    }}
+    close();
   }}
-  try {{ localStorage.setItem("newsView", v); }} catch (e) {{}}
+  try {{ localStorage.setItem("newsState", JSON.stringify(st)); }} catch (e) {{}}
 }}
-try {{ const v = localStorage.getItem("newsView"); if (v) show(v); }} catch (e) {{}}
+tabs.forEach(b => b.onclick = () => {{ st.tab = b.dataset.tab; render(); window.scrollTo(0, 0); }});
+document.querySelectorAll(".views button").forEach(b => b.onclick = () => {{ st.view = b.dataset.view; render(); }});
+render();
 </script>
 </body></html>
 """

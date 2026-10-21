@@ -33,7 +33,7 @@
     },
     {
       "name": "NPR Business",
-      "section": "Economy",
+      "section": "Finance",
       "url": "https://feeds.npr.org/1006/rss.xml"
     },
     {
@@ -95,6 +95,41 @@
       "name": "CBS Sports",
       "section": "Sports",
       "url": "https://www.cbssports.com/rss/headlines/"
+    },
+    {
+      "name": "CNBC",
+      "section": "Finance",
+      "url": "https://www.cnbc.com/id/100003114/device/rss/rss.html"
+    },
+    {
+      "name": "CNBC Economy",
+      "section": "Finance",
+      "url": "https://www.cnbc.com/id/20910258/device/rss/rss.html"
+    },
+    {
+      "name": "CNBC Markets",
+      "section": "Finance",
+      "url": "https://www.cnbc.com/id/10000664/device/rss/rss.html"
+    },
+    {
+      "name": "MarketWatch",
+      "section": "Finance",
+      "url": "https://feeds.content.dowjones.io/public/rss/mw_topstories"
+    },
+    {
+      "name": "MarketWatch Pulse",
+      "section": "Finance",
+      "url": "https://feeds.content.dowjones.io/public/rss/mw_marketpulse"
+    },
+    {
+      "name": "WSJ Markets",
+      "section": "Finance",
+      "url": "https://feeds.a.dj.com/rss/RSSMarketsMain.xml"
+    },
+    {
+      "name": "Federal Reserve",
+      "section": "Finance",
+      "url": "https://www.federalreserve.gov/feeds/press_all.xml"
     }
   ],
   "google_news": [
@@ -105,7 +140,7 @@
     },
     {
       "name": "Reuters Business",
-      "section": "Economy",
+      "section": "Finance",
       "q": "site:reuters.com/business when:1d"
     },
     {
