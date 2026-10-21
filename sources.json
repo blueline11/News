@@ -87,11 +87,6 @@
       "url": "https://www.sciencedaily.com/rss/top/science.xml"
     },
     {
-      "name": "ESPN",
-      "section": "Sports",
-      "url": "https://www.espn.com/espn/rss/news"
-    },
-    {
       "name": "CBS Sports",
       "section": "Sports",
       "url": "https://www.cbssports.com/rss/headlines/"
