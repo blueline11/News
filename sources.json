@@ -145,6 +145,51 @@
       "name": "IBD",
       "section": "Finance",
       "url": "https://www.investors.com/feed/"
+    },
+    {
+      "name": "Politico",
+      "section": "Politics",
+      "url": "https://rss.politico.com/politics-news.xml"
+    },
+    {
+      "name": "The Hill",
+      "section": "Politics",
+      "url": "https://thehill.com/homenews/feed/"
+    },
+    {
+      "name": "NYT Politics",
+      "section": "Politics",
+      "url": "https://rss.nytimes.com/services/xml/rss/nyt/Politics.xml"
+    },
+    {
+      "name": "LA Times Politics",
+      "section": "Politics",
+      "url": "https://www.latimes.com/politics/rss2.0.xml"
+    },
+    {
+      "name": "Fox News Politics",
+      "section": "Politics",
+      "url": "https://moxie.foxnews.com/google-publisher/politics.xml"
+    },
+    {
+      "name": "Axios",
+      "section": "Politics",
+      "url": "https://api.axios.com/feed/"
+    },
+    {
+      "name": "Semafor",
+      "section": "Politics",
+      "url": "https://www.semafor.com/rss.xml"
+    },
+    {
+      "name": "Washington Examiner",
+      "section": "Politics",
+      "url": "https://www.washingtonexaminer.com/feed/"
+    },
+    {
+      "name": "The Dispatch",
+      "section": "Politics",
+      "url": "https://thedispatch.com/feed/"
     }
   ],
   "google_news": [
@@ -164,8 +209,8 @@
       "q": "site:apnews.com when:1d"
     },
     {
-      "name": "AP US",
-      "section": "US",
+      "name": "AP Politics",
+      "section": "Politics",
       "q": "site:apnews.com politics when:1d"
     },
     {
@@ -197,6 +242,36 @@
       "name": "Benzinga",
       "section": "Finance",
       "q": "site:benzinga.com when:1d"
+    },
+    {
+      "name": "Punchbowl News",
+      "section": "Politics",
+      "q": "site:punchbowl.news when:1d"
+    },
+    {
+      "name": "Washington Post",
+      "section": "Politics",
+      "q": "site:washingtonpost.com/politics when:1d"
+    },
+    {
+      "name": "WSJ Politics",
+      "section": "Politics",
+      "q": "site:wsj.com/politics when:1d"
+    },
+    {
+      "name": "USA Today",
+      "section": "Politics",
+      "q": "site:usatoday.com/story/news/politics when:1d"
+    },
+    {
+      "name": "Reuters US",
+      "section": "Politics",
+      "q": "site:reuters.com/world/us when:1d"
+    },
+    {
+      "name": "Washington Examiner GN",
+      "section": "Politics",
+      "q": "site:washingtonexaminer.com when:1d"
     }
   ]
 }

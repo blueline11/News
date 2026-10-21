@@ -34,7 +34,7 @@ from markets import BOARD_CSS  # noqa: E402
 # how-to-refresh line under the title; the web copy sets its own
 HINT = os.environ.get("NEWS_HINT", "Updates by itself every 30 minutes.")
 CAP = 20
-TABS = ["Finance", "Markets", "Radar", "Top", "World", "US", "Texas", "Tech", "Science", "Turkiye", "Culture", "Sports"]
+TABS = ["Finance", "Markets", "Radar", "Top", "World", "US", "Politics", "Texas", "Tech", "Science", "Turkiye", "Culture", "Sports"]
 
 # Finance tab sub-groups, matched on the headline in this order; the last one takes the rest
 FIN_GROUPS = [
@@ -64,7 +64,7 @@ JUNK = re.compile(
     r"launches online|co-marketing|partnership to advance|world's smallest|"
     r"the afp top 10|afp recognizes|^watch:|all the goals|best plays|morning news brief|"
     r"morning bid|commentary:|press review|enforcement actions? with|"
-    r"termination of enforcement|best .{0,30}stocks? (right now|to buy)|stocks? to watch (today|this week)|stocks moving in", re.I)
+    r"termination of enforcement|best .{0,30}stocks? (right now|to buy)|stocks? to watch (today|this week)|stocks moving in|^\d{1,2}/\d{1,2}/\d{2,4}\b", re.I)
 
 STOP = set("""a an the of to in on for and or as at by with from after over amid into
 is are was were be been its it his her their this that new says say said will could
@@ -110,6 +110,18 @@ BIZ = re.compile(
     r"spins? off|billion|million|profit|earnings|revenue|sales|outlook|forecast|ceo|"
     r"crude|oil|gas|gold|copper|commodit\w*|currenc\w*|dollar|yen|euro|yuan|rupee|"
     r"inflation|rates?|central bank|economy|economic|gdp|tariffs?|exports?|imports?)\b", re.I)
+# US politics: names, institutions and campaign words that only mean US politics
+POL = re.compile(
+    r"\b(trump|vance|white house|congress\w*|senate|senators?|house (speaker|republicans|democrats|gop|vote|votes|passes|panel|committee)|"
+    r"speaker johnson|jeffries|schumer|thune|mcconnell|pelosi|aoc|ocasio-cortez|newsom|desantis|"
+    r"midterms?|democrats?|republicans?|gop|dnc|rnc|super pac|campaign trail|fundrais\w*|"
+    r"(senate|house|governor'?s?|gubernatorial|congressional|mayoral) (race|seat|candidate|primary)|"
+    r"supreme court|justice department|doj|attorney general|cabinet|impeach\w*|filibuster|"
+    r"government shutdown|appropriations|redistricting|gerrymander\w*|electoral|election day|"
+    r"early voting|voter (id|rolls|intimidation)|mail-in|ballots?|polls? (show|find)|approval rating|"
+    r"executive order|pardons?|veto)\b", re.I)
+# outlets whose feed is all topics: keep only their US politics
+POLITICS_ONLY = {"Axios", "Semafor", "Washington Examiner", "Washington Examiner GN", "The Dispatch"}
 # Anadolu also covers world news; keep only its Turkey stories
 TR = re.compile(r"(türkiye|turkey|turkish|erdo[gğ]an|ankara|istanbul|izmir)", re.I)
 TX = re.compile(r"\b(texas|austin|travis|abbott|paxton|houston|dallas|san antonio|"
@@ -124,13 +136,19 @@ def resection(it, t):
         return None
     if it["source"] == "Bloomberg" and BIZ.search(t):
         return "Finance"
+    if it["source"] in POLITICS_ONLY:
+        return "Politics" if POL.search(t) else None
+    if it["source"] == "AP Politics" and not POL.search(t):
+        return "World"  # AP's "politics" search also returns foreign politics
     if sec in ("World", "US"):
         if SPORT.search(t):
             return "Sports"
         if ECON.search(t):
             return "Finance"
         if sec == "World" and US_DOM.search(t):
-            return "US"
+            sec = "US"
+        if sec == "US" and POL.search(t):
+            return "Politics"
     return "Finance" if sec == "Economy" else sec
 
 
@@ -167,7 +185,10 @@ def label(it):
         return "BBC"
     if s.startswith("NPR"):
         return "NPR"
-    if s in ("WSJ", "Bloomberg", "Benzinga"):
+    if s in ("WSJ", "Bloomberg", "Benzinga", "WSJ Politics", "Washington Post", "Punchbowl News",
+             "USA Today", "Washington Examiner GN"):
+        s = {"WSJ Politics": "WSJ", "Washington Examiner GN": "Washington Examiner",
+             "Punchbowl News": "Punchbowl"}.get(s, s)
         return s
     if s.startswith(("Reuters", "AP", "AFP")) and it["outlet"]:
         base = s.split(" ")[0]
@@ -178,6 +199,11 @@ def label(it):
     for brand in ("CNBC", "MarketWatch"):
         if s.startswith(brand):
             return brand
+    names = {"NYT Politics": "NYT", "LA Times Politics": "LA Times", "Fox News Politics": "Fox News",
+             "WSJ Politics": "WSJ", "Washington Examiner GN": "Washington Examiner",
+             "Washington Post": "Washington Post", "Punchbowl News": "Punchbowl", "USA Today": "USA Today"}
+    if s in names:
+        return names[s]
     return {"SCMP Asia": "SCMP", "Federal Reserve": "Fed", "Hurriyet Daily News": "Hürriyet DN",
             "Anadolu": "Anadolu (AA)"}.get(s, s)
 
