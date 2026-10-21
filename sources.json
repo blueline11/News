@@ -485,6 +485,81 @@
       "name": "MedPage Today",
       "section": "Health",
       "url": "https://www.medpagetoday.com/rss/headlines.xml"
+    },
+    {
+      "name": "BBC Türkçe",
+      "section": "TurkiyeTR",
+      "url": "https://feeds.bbci.co.uk/turkce/rss.xml"
+    },
+    {
+      "name": "DW Türkçe",
+      "section": "TurkiyeTR",
+      "url": "https://rss.dw.com/rdf/rss-tur-all"
+    },
+    {
+      "name": "Euronews Türkçe",
+      "section": "TurkiyeTR",
+      "url": "https://tr.euronews.com/rss?level=theme&name=news"
+    },
+    {
+      "name": "Hürriyet",
+      "section": "TurkiyeTR",
+      "url": "https://www.hurriyet.com.tr/rss/anasayfa"
+    },
+    {
+      "name": "Sabah",
+      "section": "TurkiyeTR",
+      "url": "https://www.sabah.com.tr/rss/anasayfa.xml"
+    },
+    {
+      "name": "NTV",
+      "section": "TurkiyeTR",
+      "url": "https://www.ntv.com.tr/gundem.rss"
+    },
+    {
+      "name": "CNN Türk",
+      "section": "TurkiyeTR",
+      "url": "https://www.cnnturk.com/feed/rss/all/news"
+    },
+    {
+      "name": "TRT Haber",
+      "section": "TurkiyeTR",
+      "url": "https://www.trthaber.com/manset_articles.rss"
+    },
+    {
+      "name": "Sözcü",
+      "section": "TurkiyeTR",
+      "url": "https://www.sozcu.com.tr/feeds-rss-category-sozcu"
+    },
+    {
+      "name": "Cumhuriyet",
+      "section": "TurkiyeTR",
+      "url": "https://www.cumhuriyet.com.tr/rss/son_dakika.xml"
+    },
+    {
+      "name": "BirGün",
+      "section": "TurkiyeTR",
+      "url": "https://www.birgun.net/rss/home"
+    },
+    {
+      "name": "Karar",
+      "section": "TurkiyeTR",
+      "url": "https://www.karar.com/service/rss.php"
+    },
+    {
+      "name": "Diken",
+      "section": "TurkiyeTR",
+      "url": "https://www.diken.com.tr/feed/"
+    },
+    {
+      "name": "Medyascope",
+      "section": "TurkiyeTR",
+      "url": "https://medyascope.tv/feed/"
+    },
+    {
+      "name": "Yetkin Report",
+      "section": "TurkiyeTR",
+      "url": "https://yetkinreport.com/feed/"
     }
   ],
   "google_news": [
@@ -657,6 +732,23 @@
       "name": "CIDRAP",
       "section": "Health",
       "q": "site:cidrap.umn.edu when:1d"
+    },
+    {
+      "name": "TRT World",
+      "section": "Turkiye",
+      "q": "site:trtworld.com (Türkiye OR Turkey OR Turkish OR Erdogan) when:1d"
+    },
+    {
+      "name": "T24",
+      "section": "TurkiyeTR",
+      "q": "site:t24.com.tr when:1d",
+      "lang": "tr"
+    },
+    {
+      "name": "AA Türkçe",
+      "section": "TurkiyeTR",
+      "q": "site:aa.com.tr/tr when:1d",
+      "lang": "tr"
     }
   ]
 }

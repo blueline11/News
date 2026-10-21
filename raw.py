@@ -34,7 +34,7 @@ from markets import BOARD_CSS  # noqa: E402
 # how-to-refresh line under the title; the web copy sets its own
 HINT = os.environ.get("NEWS_HINT", "Updates by itself every 30 minutes.")
 CAP = 20
-TABS = ["Finance", "Top", "World", "US", "Politics", "WorldPol", "Texas", "Austin", "Tech", "AI", "Science", "Health", "Turkiye", "Culture", "Sports"]
+TABS = ["Finance", "Top", "World", "US", "Politics", "WorldPol", "Texas", "Austin", "Tech", "AI", "Science", "Health", "Turkiye", "TurkiyeTR", "Culture", "Sports"]
 
 # Finance tab sub-groups, matched on the headline in this order; the last one takes the rest
 FIN_GROUPS = [
@@ -53,7 +53,7 @@ FIN_GROUPS = [
 MARKET_PULL = re.compile(r"\b(oil|crude|brent|opec|hormuz|tariffs?|sanctions?|trade (deal|war|talks)|"
                          r"fed|federal reserve|central bank|bond yields?|treasury yields?|"
                          r"export (ban|controls?)|stock markets?|wall st(reet)?)\b", re.I)
-TITLES = {"Top": "Top stories", "Health": "Health", "AI": "AI", "Austin": "Austin", "WorldPol": "World Politics", "Texas": "Texas & Austin", "Tech": "Tech", "Science": "Science & Health",
+TITLES = {"Top": "Top stories", "TurkiyeTR": "Türkçe", "Health": "Health", "AI": "AI", "Austin": "Austin", "WorldPol": "World Politics", "Texas": "Texas & Austin", "Tech": "Tech", "Science": "Science & Health",
           "Turkiye": "Türkiye"}
 
 # headlines that are never news
@@ -172,6 +172,12 @@ SCI = re.compile(
     r"dna|archaeolog\w*|extinct\w*|emissions|carbon dioxide|coral reefs?|glaciers?)\b", re.I)
 # high-volume feeds: newest N each
 SOURCE_CAPS = {"Phys.org": 15, "Medical Xpress": 15, "Nature": 10}
+# Turkish-language outlets: sport, celebrity and lifestyle pages are not news here
+TR_SKIP = re.compile(
+    r"(\bspor\b|maç|galatasaray|fenerbahçe|beşiktaş|trabzonspor|süper lig|futbol|basketbol|voleybol|"
+    r"teknik direktör|transfer|burç|magazin|ünlü|dizi|reyting|tarif|hava durumu|altın fiyatları|"
+    r"döviz kuru|canlı izle|kaç tl|ne zaman|nedir\?)", re.I)
+TR_CAP = 15
 # Austin and the surrounding counties
 AUSTIN = re.compile(
     r"\b(austin|austinites?|travis county|williamson county|hays county|bastrop|round rock|cedar park|"
@@ -189,6 +195,8 @@ def resection(it, t):
     sec = it["section"]
     if it["source"] in ("Austin local", "KXAN", "KVUE") and not (TX.search(t) or AUSTIN.search(t)):
         return None  # wire copy republished by a local site; it is covered elsewhere
+    if sec == "TurkiyeTR":
+        return None if TR_SKIP.search(t) else "TurkiyeTR"
     if sec == "Tech":
         return "AI" if AI.search(t) else "Tech"
     if sec == "Texas":
@@ -201,7 +209,7 @@ def resection(it, t):
         if it["source"] == "Community Impact":  # covers all of Texas; keep the Austin area
             return "Austin" if AUSTIN.search(t + " " + it["summary"]) else None
         return "Austin" if it["source"] in AUSTIN_SRC or AUSTIN.search(t) else "Texas"
-    if it["source"] == "Anadolu" and not TR.search(t):
+    if it["source"] in ("Anadolu", "TRT World") and not TR.search(t):
         return None
     if it["source"] == "Bloomberg" and BIZ.search(t):
         return "Finance"
@@ -245,6 +253,7 @@ def fmt(d, f):
 def clean_title(it):
     t = it["title"]
     t = re.sub(r"^STAT\+:\s*", "", t)  # STAT's paywall marker
+    t = re.sub(r"^(SON DAKİKA|Son dakika|SON DAKIKA)( HABERİ| HABERI)?\s*[:|-]?\s*", "", t)
     if it["outlet"] and t.endswith(" - " + it["outlet"]):  # Google News appends " - Outlet"
         t = t[: -len(" - " + it["outlet"])]
     elif it["outlet"]:
@@ -269,6 +278,8 @@ def words(t):
 
 def label(it):
     s = it["source"]
+    if s in NAMES:
+        return NAMES[s]
     if s.startswith("BBC"):
         return "BBC"
     if s.startswith("NPR"):
@@ -300,7 +311,8 @@ NAMES = {
     "Guardian World": "Guardian", "FT World": "FT", "SCMP Asia": "SCMP", "Federal Reserve": "Fed",
     "Hurriyet Daily News": "Hürriyet DN", "Anadolu": "Anadolu (AA)",
     "NYT Science": "NYT", "NYT Health": "NYT", "Carbon Brief": "Carbon Brief", "WHO": "WHO",
-    "CIDRAP": "CIDRAP", "VentureBeat": "VentureBeat", "Rest of World": "Rest of World", "BleepingComputer": "BleepingComputer", "MIT Technology Review": "MIT Tech Review",
+    "CIDRAP": "CIDRAP", "BBC Türkçe": "BBC Türkçe", "TRT World": "TRT World", "T24": "T24", "AA Türkçe": "AA",
+    "VentureBeat": "VentureBeat", "Rest of World": "Rest of World", "BleepingComputer": "BleepingComputer", "MIT Technology Review": "MIT Tech Review",
 }
 
 
@@ -322,6 +334,7 @@ def main():
         if len(it["w"]) < 2:
             continue
         cap = (REGIONAL_CAP if sec == "World" and it["source"] in WP_ALSO_WORLD
+               else TR_CAP if sec == "TurkiyeTR"
                else CITY_PAPERS.get(it["source"]) or SOURCE_CAPS.get(it["source"]))
         if cap:  # regional outlets add a voice, not a flood: newest `cap` each
             regional[it["source"]] = regional.get(it["source"], 0) + 1
@@ -439,7 +452,7 @@ def main():
         if not cs:
             continue
         total += len(cs) if sec != "Top" else 0
-        if sec not in ("WorldPol", "Austin", "AI", "Health"):  # shown inside Politics / Texas / Tech / Science
+        if sec not in ("WorldPol", "Austin", "AI", "Health", "TurkiyeTR"):  # shown inside Politics / Texas / Tech / Science
             tabbar.append(f'<button data-tab="{sid}">{escape(name)}</button>')
         panels.append(f'<section class="panel" data-tab="{sid}" hidden>' + "\n".join(inner) + "</section>")
 
@@ -563,6 +576,7 @@ footer {{ margin-top:36px; color:var(--muted); font:13px/1.5 "Source Sans 3", sy
   <div class="views splitviews" data-for="politics"><button data-view="us">US</button><button data-view="world">World</button><button data-view="latest">Latest first</button></div>
   <div class="views splitviews" data-for="tech"><button data-view="ai">AI</button><button data-view="gear">Tech</button><button data-view="latest">Latest first</button></div>
   <div class="views splitviews" data-for="science"><button data-view="sci">Science</button><button data-view="health">Health</button><button data-view="latest">Latest first</button></div>
+  <div class="views splitviews" data-for="turkiye"><button data-view="en">English</button><button data-view="tr">Türkçe</button><button data-view="latest">Latest first</button></div>
   <div class="views splitviews" data-for="texas"><button data-view="austin">Austin</button><button data-view="state">Texas</button><button data-view="latest">Latest first</button></div>
 </div>
 <div id="strip" hidden>{strip}</div>
@@ -581,8 +595,8 @@ Feeds that failed: {failed}.</footer>
 <script>
 const st = {{ tab: "finance", view: "topic" }};
 // tabs split into sub-views: view name -> panel
-const SPLIT = {{ politics: {{ us: "politics", world: "worldpol" }}, texas: {{ austin: "austin", state: "texas" }}, tech: {{ ai: "ai", gear: "tech" }}, science: {{ sci: "science", health: "health" }} }};
-const SUBVIEWS = ["us", "world", "austin", "state", "ai", "gear", "sci", "health"];
+const SPLIT = {{ politics: {{ us: "politics", world: "worldpol" }}, texas: {{ austin: "austin", state: "texas" }}, tech: {{ ai: "ai", gear: "tech" }}, science: {{ sci: "science", health: "health" }}, turkiye: {{ en: "turkiye", tr: "turkiyetr" }} }};
+const SUBVIEWS = ["us", "world", "austin", "state", "ai", "gear", "sci", "health", "en", "tr"];
 try {{ Object.assign(st, JSON.parse(localStorage.getItem("newsState") || "{{}}")); }} catch (e) {{}}
 const tabs = [...document.querySelectorAll(".tabs button")];
 if (st.tab === "markets" || st.tab === "radar") {{ st.view = st.tab; st.tab = "finance"; }}  // these used to be tabs

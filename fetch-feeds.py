@@ -65,7 +65,7 @@ def strip_html(s):
 def parse_date(s):
     if not s:
         return None
-    s = s.strip()
+    s = unescape(s).strip()  # Sözcü writes "+0300" as "&#x2B;0300"
     try:
         d = parsedate_to_datetime(s)
     except Exception:
@@ -116,8 +116,8 @@ def main():
 
     feeds = [(s["name"], s["section"], s["url"]) for s in cfg.get("rss", [])]
     for s in cfg.get("google_news", []):
-        url = ("https://news.google.com/rss/search?q=" + urllib.parse.quote(s["q"]) +
-               "&hl=en-US&gl=US&ceid=US:en")
+        ed = "&hl=tr&gl=TR&ceid=TR:tr" if s.get("lang") == "tr" else "&hl=en-US&gl=US&ceid=US:en"
+        url = "https://news.google.com/rss/search?q=" + urllib.parse.quote(s["q"]) + ed
         feeds.append((s["name"], s["section"], url))
 
     cutoff = datetime.now(timezone.utc) - timedelta(hours=HOURS)
