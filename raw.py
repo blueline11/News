@@ -212,7 +212,7 @@ def clean_title(it):
     elif it["outlet"]:
         t = re.sub(r"\s+-\s+[^-]+$", "", t)
     if it["outlet"]:  # Benzinga: "... - NVIDIA (NASDAQ:NVDA)"
-        t = re.sub(r"\s+-\s+[^-]*\((NASDAQ|NYSE|AMEX|OTC|NYSEAMERICAN|CBOE)[^)]*\)$", "", t)
+        t = re.sub(r"\s+-\s+[^-]{0,80}\((NASDAQ|NYSE|AMEX|OTC|NYSEAMERICAN|CBOE):.*$", "", t)
     return t.strip()
 
 
