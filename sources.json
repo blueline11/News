@@ -365,6 +365,56 @@
       "name": "Texas Scorecard",
       "section": "Texas",
       "url": "https://texasscorecard.com/feed/"
+    },
+    {
+      "name": "TechCrunch",
+      "section": "Tech",
+      "url": "https://techcrunch.com/feed/"
+    },
+    {
+      "name": "CNBC Tech",
+      "section": "Tech",
+      "url": "https://www.cnbc.com/id/19854910/device/rss/rss.html"
+    },
+    {
+      "name": "The Register",
+      "section": "Tech",
+      "url": "https://www.theregister.com/headlines.atom"
+    },
+    {
+      "name": "Wired",
+      "section": "Tech",
+      "url": "https://www.wired.com/feed/rss"
+    },
+    {
+      "name": "MIT Technology Review",
+      "section": "Tech",
+      "url": "https://www.technologyreview.com/feed/"
+    },
+    {
+      "name": "Engadget",
+      "section": "Tech",
+      "url": "https://www.engadget.com/rss.xml"
+    },
+    {
+      "name": "9to5Mac",
+      "section": "Tech",
+      "url": "https://9to5mac.com/feed/"
+    },
+    {
+      "name": "Tom's Hardware",
+      "section": "Tech",
+      "url": "https://www.tomshardware.com/feeds/all"
+    },
+    {
+      "name": "IEEE Spectrum",
+      "section": "Tech",
+      "url": "https://spectrum.ieee.org/feeds/feed.rss"
+    },
+    {
+      "name": "Hacker News",
+      "section": "Tech",
+      "url": "https://hnrss.org/frontpage?points=150"
     }
   ],
   "google_news": [
@@ -502,6 +552,26 @@
       "name": "San Antonio Express-News",
       "section": "Texas",
       "q": "site:expressnews.com when:1d"
+    },
+    {
+      "name": "Reuters Tech",
+      "section": "Tech",
+      "q": "site:reuters.com/technology when:1d"
+    },
+    {
+      "name": "VentureBeat",
+      "section": "Tech",
+      "q": "site:venturebeat.com when:1d"
+    },
+    {
+      "name": "BleepingComputer",
+      "section": "Tech",
+      "q": "site:bleepingcomputer.com when:1d"
+    },
+    {
+      "name": "Rest of World",
+      "section": "Tech",
+      "q": "site:restofworld.org when:2d"
     }
   ]
 }

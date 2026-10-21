@@ -34,7 +34,7 @@ from markets import BOARD_CSS  # noqa: E402
 # how-to-refresh line under the title; the web copy sets its own
 HINT = os.environ.get("NEWS_HINT", "Updates by itself every 30 minutes.")
 CAP = 20
-TABS = ["Finance", "Top", "World", "US", "Politics", "WorldPol", "Texas", "Austin", "Tech", "Science", "Turkiye", "Culture", "Sports"]
+TABS = ["Finance", "Top", "World", "US", "Politics", "WorldPol", "Texas", "Austin", "Tech", "AI", "Science", "Turkiye", "Culture", "Sports"]
 
 # Finance tab sub-groups, matched on the headline in this order; the last one takes the rest
 FIN_GROUPS = [
@@ -53,7 +53,7 @@ FIN_GROUPS = [
 MARKET_PULL = re.compile(r"\b(oil|crude|brent|opec|hormuz|tariffs?|sanctions?|trade (deal|war|talks)|"
                          r"fed|federal reserve|central bank|bond yields?|treasury yields?|"
                          r"export (ban|controls?)|stock markets?|wall st(reet)?)\b", re.I)
-TITLES = {"Top": "Top stories", "Austin": "Austin", "WorldPol": "World Politics", "Texas": "Texas & Austin", "Tech": "Tech", "Science": "Science & Health",
+TITLES = {"Top": "Top stories", "AI": "AI", "Austin": "Austin", "WorldPol": "World Politics", "Texas": "Texas & Austin", "Tech": "Tech", "Science": "Science & Health",
           "Turkiye": "Türkiye"}
 
 # headlines that are never news
@@ -144,6 +144,19 @@ WP_ALSO_WORLD = {"Middle East Eye", "Guardian World", "Euronews", "Meduza", "Mos
 POLITICS_ONLY = {"Axios", "Semafor", "Washington Examiner", "Washington Examiner GN", "The Dispatch"}
 # Anadolu also covers world news; keep only its Turkey stories
 TR = re.compile(r"(türkiye|turkey|turkish|erdo[gğ]an|ankara|istanbul|izmir)", re.I)
+# artificial intelligence
+AI = re.compile(
+    r"\b(ai|a\.i\.|artificial intelligence|openai|chatgpt|gpt-?\d\w*|anthropic|claude|gemini|llms?|"
+    r"large language models?|chatbots?|deepfakes?|generative|machine learning|copilot|deepseek|xai|"
+    r"grok|agi|superintelligence|neural|ai agents?|agentic|mistral|perplexity|hugging face)\b", re.I)
+# technology stories arriving through the wires, papers and broadcasters
+TECH = re.compile(
+    r"\b(apple|iphone|ipad|google|alphabet|microsoft|meta platforms|facebook|instagram|whatsapp|tiktok|"
+    r"amazon web services|aws|nvidia|intel|amd|tsmc|qualcomm|semiconductors?|chips?|chipmakers?|"
+    r"cyber\w*|hack(s|ed|ers?|ing)?|ransomware|data breach|malware|spyware|smartphones?|software|"
+    r"app store|social media|starlink|robots?|robotics|quantum|data cent(er|re)s?|cloud computing|"
+    r"silicon valley|tech giants?|big tech|5g|satellites?|electric vehicles?|self-driving|waymo|"
+    r"tesla autopilot|open source|encryption|algorithm\w*)\b", re.I)
 # Austin and the surrounding counties
 AUSTIN = re.compile(
     r"\b(austin|austinites?|travis county|williamson county|hays county|bastrop|round rock|cedar park|"
@@ -161,6 +174,8 @@ def resection(it, t):
     sec = it["section"]
     if it["source"] in ("Austin local", "KXAN", "KVUE") and not (TX.search(t) or AUSTIN.search(t)):
         return None  # wire copy republished by a local site; it is covered elsewhere
+    if sec == "Tech":
+        return "AI" if AI.search(t) else "Tech"
     if sec == "Texas":
         if SPORT.search(t):
             return "Sports"
@@ -190,6 +205,10 @@ def resection(it, t):
             return "Sports"
         if ECON.search(t):
             return "Finance"
+        if AI.search(t):
+            return "AI"
+        if TECH.search(t):
+            return "Tech"
         if sec == "World" and US_DOM.search(t):
             sec = "US"
         if sec == "US" and POL.search(t):
@@ -261,6 +280,7 @@ NAMES = {
     "Fox News US": "Fox News", "Fox News Politics": "Fox News",
     "Guardian World": "Guardian", "FT World": "FT", "SCMP Asia": "SCMP", "Federal Reserve": "Fed",
     "Hurriyet Daily News": "Hürriyet DN", "Anadolu": "Anadolu (AA)",
+    "VentureBeat": "VentureBeat", "Rest of World": "Rest of World", "BleepingComputer": "BleepingComputer", "MIT Technology Review": "MIT Tech Review",
 }
 
 
@@ -399,7 +419,7 @@ def main():
         if not cs:
             continue
         total += len(cs) if sec != "Top" else 0
-        if sec not in ("WorldPol", "Austin"):  # shown inside Politics / Texas
+        if sec not in ("WorldPol", "Austin", "AI"):  # shown inside Politics / Texas / Tech
             tabbar.append(f'<button data-tab="{sid}">{escape(name)}</button>')
         panels.append(f'<section class="panel" data-tab="{sid}" hidden>' + "\n".join(inner) + "</section>")
 
@@ -521,6 +541,7 @@ footer {{ margin-top:36px; color:var(--muted); font:13px/1.5 "Source Sans 3", sy
   <div class="tabs">{tabbar}</div>
   <div class="views stdviews"><button data-view="topic">By topic</button><button data-view="latest">Latest first</button><button data-view="markets" class="finonly">Markets</button><button data-view="radar" class="finonly">Radar</button></div>
   <div class="views splitviews" data-for="politics"><button data-view="us">US</button><button data-view="world">World</button><button data-view="latest">Latest first</button></div>
+  <div class="views splitviews" data-for="tech"><button data-view="ai">AI</button><button data-view="gear">Tech</button><button data-view="latest">Latest first</button></div>
   <div class="views splitviews" data-for="texas"><button data-view="austin">Austin</button><button data-view="state">Texas</button><button data-view="latest">Latest first</button></div>
 </div>
 <div id="strip" hidden>{strip}</div>
@@ -539,8 +560,8 @@ Feeds that failed: {failed}.</footer>
 <script>
 const st = {{ tab: "finance", view: "topic" }};
 // tabs split into sub-views: view name -> panel
-const SPLIT = {{ politics: {{ us: "politics", world: "worldpol" }}, texas: {{ austin: "austin", state: "texas" }} }};
-const SUBVIEWS = ["us", "world", "austin", "state"];
+const SPLIT = {{ politics: {{ us: "politics", world: "worldpol" }}, texas: {{ austin: "austin", state: "texas" }}, tech: {{ ai: "ai", gear: "tech" }} }};
+const SUBVIEWS = ["us", "world", "austin", "state", "ai", "gear"];
 try {{ Object.assign(st, JSON.parse(localStorage.getItem("newsState") || "{{}}")); }} catch (e) {{}}
 const tabs = [...document.querySelectorAll(".tabs button")];
 if (st.tab === "markets" || st.tab === "radar") {{ st.view = st.tab; st.tab = "finance"; }}  // these used to be tabs
