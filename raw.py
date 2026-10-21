@@ -352,14 +352,14 @@ TEMPLATE = """<!doctype html>
 <style>
 :root {{ --bg:#faf8f4; --fg:#1f1d1a; --muted:#6b665e; --line:#e4dfd6; --accent:#2d5a5a;
   --badge:#e2ece9; --link:#2d5a8a; --up:#1d7a3e; --dn:#b3261e;
-  --card:#ffffff; --card-b:#eef4f2; --edge:#2d5a5a; --edge-b:#c0843d; --shadow:0 1px 3px rgba(40,30,20,.08); }}
+  --card:#ffffff; --card-b:#eef4f2; --cardline:#d6d0c4; --cardline-b:#b9d0ca; --edge:#2d5a5a; --edge-b:#c0843d; --shadow:0 1px 3px rgba(40,30,20,.08); }}
 @media (prefers-color-scheme: dark) {{ :root:not([data-theme="light"]) {{
   --bg:#17161a; --fg:#e8e4dc; --muted:#9a958c; --line:#2c2a30; --accent:#8cc7c0;
   --badge:#22312f; --link:#8fb6e0; --up:#5fc787; --dn:#ff8a80;
-  --card:#211f25; --card-b:#1c2726; --edge:#8cc7c0; --edge-b:#e0a56f; --shadow:none; }} }}
+  --card:#211f25; --card-b:#1c2726; --cardline:#3a3740; --cardline-b:#2f4a46; --edge:#8cc7c0; --edge-b:#e0a56f; --shadow:none; }} }}
 :root[data-theme="dark"] {{ --bg:#17161a; --fg:#e8e4dc; --muted:#9a958c; --line:#2c2a30;
   --accent:#8cc7c0; --badge:#22312f; --link:#8fb6e0; --up:#5fc787; --dn:#ff8a80;
-  --card:#211f25; --card-b:#1c2726; --edge:#8cc7c0; --edge-b:#e0a56f; --shadow:none; }}
+  --card:#211f25; --card-b:#1c2726; --cardline:#3a3740; --cardline-b:#2f4a46; --edge:#8cc7c0; --edge-b:#e0a56f; --shadow:none; }}
 * {{ box-sizing:border-box; }}
 body {{ margin:0; background:var(--bg); color:var(--fg);
   font:17px/1.55 "Nunito Sans", system-ui, -apple-system, "Segoe UI", sans-serif; }}
@@ -385,9 +385,9 @@ h4.group {{ font:600 13px "Nunito Sans", system-ui, sans-serif; text-transform:u
   color:var(--muted); margin:18px 0 2px; }}
 .count {{ font:13px "Nunito Sans", system-ui, sans-serif; color:var(--muted); margin-left:10px; font-weight:400; }}
 .lede {{ font:14px "Nunito Sans", system-ui, sans-serif; margin:10px 0 0; }}
-.story {{ background:var(--card); border-radius:12px; padding:14px 16px 12px; margin:12px 0;
-  box-shadow:var(--shadow); border-left:4px solid var(--edge); }}
-.story.alt {{ background:var(--card-b); border-left-color:var(--edge-b); }}
+.story {{ background:var(--card); border:1px solid var(--cardline); border-radius:6px;
+  padding:14px 16px 12px; margin:10px 0; }}
+.story.alt {{ background:var(--card-b); border-color:var(--cardline-b); }}
 .story h3 {{ font-size:18px; font-weight:700; margin:0 0 4px; line-height:1.3; }}
 .story p {{ margin:0 0 8px; font-size:15.5px; color:var(--fg); opacity:.85; }}
 .src {{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }}
