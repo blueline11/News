@@ -34,7 +34,7 @@ from markets import BOARD_CSS  # noqa: E402
 # how-to-refresh line under the title; the web copy sets its own
 HINT = os.environ.get("NEWS_HINT", "Updates by itself every 30 minutes.")
 CAP = 20
-TABS = ["Finance", "Top", "World", "US", "Politics", "WorldPol", "Texas", "Austin", "Tech", "AI", "Science", "Health", "Turkiye", "TurkiyeTR", "Culture", "Music", "Arts", "Sports", "Soccer", "SportsTX", "SportsTR"]
+TABS = ["Finance", "Top", "World", "US", "Politics", "WorldPol", "Texas", "Austin", "Tech", "AI", "Science", "Health", "Turkiye", "TurkiyeTR", "Culture", "Music", "Arts", "Sports", "Soccer", "SportsTX", "SportsTR", "Lighter", "Curious", "Ent"]
 
 # Finance tab sub-groups, matched on the headline in this order; the last one takes the rest
 FIN_GROUPS = [
@@ -53,7 +53,7 @@ FIN_GROUPS = [
 MARKET_PULL = re.compile(r"\b(oil|crude|brent|opec|hormuz|tariffs?|sanctions?|trade (deal|war|talks)|"
                          r"fed|federal reserve|central bank|bond yields?|treasury yields?|"
                          r"export (ban|controls?)|stock markets?|wall st(reet)?)\b", re.I)
-TITLES = {"Top": "Top stories", "Soccer": "Soccer", "SportsTX": "Texas", "SportsTR": "Türk Sporu", "Music": "Music", "Arts": "Books & Arts", "TurkiyeTR": "Türkçe", "Health": "Health", "AI": "AI", "Austin": "Austin", "WorldPol": "World Politics", "Texas": "Texas & Austin", "Tech": "Tech", "Science": "Science & Health",
+TITLES = {"Top": "Top stories", "Lighter": "Lighter", "Curious": "Curious", "Ent": "Entertainment", "Soccer": "Soccer", "SportsTX": "Texas", "SportsTR": "Türk Sporu", "Music": "Music", "Arts": "Books & Arts", "TurkiyeTR": "Türkçe", "Health": "Health", "AI": "AI", "Austin": "Austin", "WorldPol": "World Politics", "Texas": "Texas & Austin", "Tech": "Tech", "Science": "Science & Health",
           "Turkiye": "Türkiye"}
 
 # headlines that are never news
@@ -171,7 +171,8 @@ SCI = re.compile(
     r"galax(y|ies)|black holes?|climate change|global warming|el ni[nñ]o|la ni[nñ]a|physics|genomes?|"
     r"dna|archaeolog\w*|extinct\w*|emissions|carbon dioxide|coral reefs?|glaciers?)\b", re.I)
 # high-volume feeds: newest N each
-SOURCE_CAPS = {"Phys.org": 15, "Medical Xpress": 15, "Nature": 10, "AP Sports": 25, "The Athletic": 30,
+SOURCE_CAPS = {"AP Oddities": 12, "Mental Floss": 15, "TMZ": 12, "People": 15, "Entertainment Weekly": 15,
+               "Polygon": 12, "IGN": 12, "Vulture": 12, "E! News": 15, "Phys.org": 15, "Medical Xpress": 15, "Nature": 10, "AP Sports": 25, "The Athletic": 30,
                "BBC Football": 25, "Houston Chronicle Sports": 20, "A Spor": 20, "Yahoo Sports": 30}
 # Turkish-language outlets: sport, celebrity and lifestyle pages are not news here
 TR_SPORT = re.compile(
@@ -204,6 +205,15 @@ def sports_view(it, t):
     return "Sports"
 
 
+# the Lighter tab stays light: no violence, crime, death, war or politics, whatever the source posts
+HEAVY = re.compile(
+    r"\b(kill(s|ed|ing)?|dies|died|death|dead|deadly|murder\w*|shot|shooting|stabb\w*|arrest\w*|"
+    r"charged|sentenced|prison|jail\w*|lawsuit|sued|war|attack\w*|bomb\w*|trump|biden|election|"
+    r"abuse\w*|assault\w*|rape|crash(es|ed)?|overdose\w*|suicide|missing|hostage|terror\w*|"
+    r"divorce|cheating|feud)\b", re.I)
+LIGHT_SRC = {"Lighter", "Curious", "Ent"}
+
+
 # culture: film & TV / music / books & arts
 FILM = re.compile(
     r"\b(films?|movies?|box office|hollywood|oscars?|emmys?|golden globes?|cannes|sundance|tv series|"
@@ -233,6 +243,11 @@ def resection(it, t):
     sec = it["section"]
     if it["source"] in ("Austin local", "KXAN", "KVUE") and not (TX.search(t) or AUSTIN.search(t)):
         return None  # wire copy republished by a local site; it is covered elsewhere
+    if sec in LIGHT_SRC:
+        # light means light: no heavy news, and no politics or business either
+        if HEAVY.search(t) or POL.search(t) or WPOL.search(t) or ECON.search(t):
+            return None
+        return sec
     if sec == "SportsTR":
         return None if TR_SKIP.search(t) else "SportsTR"
     if sec == "TurkiyeTR":
@@ -361,7 +376,8 @@ NAMES = {
     "Guardian World": "Guardian", "FT World": "FT", "SCMP Asia": "SCMP", "Federal Reserve": "Fed",
     "Hurriyet Daily News": "Hürriyet DN", "Anadolu": "Anadolu (AA)",
     "NYT Science": "NYT", "NYT Health": "NYT", "Carbon Brief": "Carbon Brief", "WHO": "WHO",
-    "CIDRAP": "CIDRAP", "BBC Football": "BBC Sport", "Guardian Football": "Guardian",
+    "CIDRAP": "CIDRAP", "AP Oddities": "AP", "People": "People", "Entertainment Weekly": "EW",
+    "Vulture": "Vulture", "Polygon": "Polygon", "BBC Football": "BBC Sport", "Guardian Football": "Guardian",
     "Dallas Morning News Sports": "Dallas Morning News", "Houston Chronicle Sports": "Houston Chronicle",
     "Statesman Sports": "Austin American-Statesman", "TRT Spor": "TRT Spor", "NYT Books": "NYT", "NYT Arts": "NYT", "Guardian Culture": "Guardian", "BBC Türkçe": "BBC Türkçe", "TRT World": "TRT World", "T24": "T24", "AA Türkçe": "AA",
     "VentureBeat": "VentureBeat", "Rest of World": "Rest of World", "BleepingComputer": "BleepingComputer", "MIT Technology Review": "MIT Tech Review",
@@ -506,7 +522,7 @@ def main():
         if not cs:
             continue
         total += len(cs) if sec != "Top" else 0
-        if sec not in ("WorldPol", "Austin", "AI", "Health", "TurkiyeTR", "Music", "Arts", "Soccer", "SportsTX", "SportsTR"):  # shown inside Politics / Texas / Tech / Science
+        if sec not in ("WorldPol", "Austin", "AI", "Health", "TurkiyeTR", "Music", "Arts", "Soccer", "SportsTX", "SportsTR", "Curious", "Ent"):  # shown inside Politics / Texas / Tech / Science
             tabbar.append(f'<button data-tab="{sid}">{escape(name)}</button>')
         panels.append(f'<section class="panel" data-tab="{sid}" hidden>' + "\n".join(inner) + "</section>")
 
@@ -633,6 +649,7 @@ footer {{ margin-top:36px; color:var(--muted); font:13px/1.5 "Source Sans 3", sy
   <div class="views splitviews" data-for="turkiye"><button data-view="tr">Türkçe</button><button data-view="en">English</button><button data-view="latest">Latest first</button></div>
   <div class="views splitviews" data-for="culture"><button data-view="film">Film &amp; TV</button><button data-view="music">Music</button><button data-view="arts">Books &amp; Arts</button><button data-view="latest">Latest first</button></div>
   <div class="views splitviews" data-for="sports"><button data-view="sus">US</button><button data-view="soccer">Soccer</button><button data-view="stx">Texas</button><button data-view="str">Türk Sporu</button><button data-view="latest">Latest first</button></div>
+  <div class="views splitviews" data-for="lighter"><button data-view="good">Good News</button><button data-view="curious">Curious</button><button data-view="ent">Entertainment</button><button data-view="latest">Latest first</button></div>
   <div class="views splitviews" data-for="texas"><button data-view="austin">Austin</button><button data-view="state">Texas</button><button data-view="latest">Latest first</button></div>
 </div>
 <div id="strip" hidden>{strip}</div>
@@ -651,8 +668,8 @@ Feeds that failed: {failed}.</footer>
 <script>
 const st = {{ tab: "finance", view: "topic" }};
 // tabs split into sub-views: view name -> panel
-const SPLIT = {{ politics: {{ us: "politics", world: "worldpol" }}, texas: {{ austin: "austin", state: "texas" }}, tech: {{ ai: "ai", gear: "tech" }}, science: {{ sci: "science", health: "health" }}, turkiye: {{ tr: "turkiyetr", en: "turkiye" }}, culture: {{ film: "culture", music: "music", arts: "arts" }}, sports: {{ sus: "sports", soccer: "soccer", stx: "sportstx", str: "sportstr" }} }};
-const SUBVIEWS = ["us", "world", "austin", "state", "ai", "gear", "sci", "health", "en", "tr", "film", "music", "arts", "sus", "soccer", "stx", "str"];
+const SPLIT = {{ politics: {{ us: "politics", world: "worldpol" }}, texas: {{ austin: "austin", state: "texas" }}, tech: {{ ai: "ai", gear: "tech" }}, science: {{ sci: "science", health: "health" }}, turkiye: {{ tr: "turkiyetr", en: "turkiye" }}, culture: {{ film: "culture", music: "music", arts: "arts" }}, sports: {{ sus: "sports", soccer: "soccer", stx: "sportstx", str: "sportstr" }}, lighter: {{ good: "lighter", curious: "curious", ent: "ent" }} }};
+const SUBVIEWS = ["us", "world", "austin", "state", "ai", "gear", "sci", "health", "en", "tr", "film", "music", "arts", "sus", "soccer", "stx", "str", "good", "curious", "ent"];
 try {{ Object.assign(st, JSON.parse(localStorage.getItem("newsState") || "{{}}")); }} catch (e) {{}}
 const tabs = [...document.querySelectorAll(".tabs button")];
 if (st.tab === "markets" || st.tab === "radar") {{ st.view = st.tab; st.tab = "finance"; }}  // these used to be tabs

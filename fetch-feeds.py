@@ -114,15 +114,17 @@ def main():
     with open(SRC, encoding="utf-8") as f:
         cfg = json.load(f)
 
-    feeds = [(s["name"], s["section"], s["url"]) for s in cfg.get("rss", [])]
+    # (name, section, url, hours): "hours" in sources.json widens the window for slow publishers
+    feeds = [(s["name"], s["section"], s["url"], s.get("hours", HOURS)) for s in cfg.get("rss", [])]
     for s in cfg.get("google_news", []):
         ed = "&hl=tr&gl=TR&ceid=TR:tr" if s.get("lang") == "tr" else "&hl=en-US&gl=US&ceid=US:en"
         url = "https://news.google.com/rss/search?q=" + urllib.parse.quote(s["q"]) + ed
-        feeds.append((s["name"], s["section"], url))
+        feeds.append((s["name"], s["section"], url, s.get("hours", HOURS)))
 
-    cutoff = datetime.now(timezone.utc) - timedelta(hours=HOURS)
+    now = datetime.now(timezone.utc)
     seen, items, errors = set(), [], []
-    for name, section, url in feeds:
+    for name, section, url, hours in feeds:
+        cutoff = now - timedelta(hours=hours)
         try:
             raw = parse_feed(fetch(url))
             kept = 0

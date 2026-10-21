@@ -655,6 +655,60 @@
       "name": "A Spor",
       "section": "SportsTR",
       "url": "https://www.aspor.com.tr/rss/anasayfa.xml"
+    },
+    {
+      "name": "Good News Network",
+      "section": "Lighter",
+      "url": "https://www.goodnewsnetwork.org/feed/"
+    },
+    {
+      "name": "Positive News",
+      "section": "Lighter",
+      "url": "https://www.positive.news/feed/",
+      "hours": 72
+    },
+    {
+      "name": "Reasons to be Cheerful",
+      "section": "Lighter",
+      "url": "https://reasonstobecheerful.world/feed/",
+      "hours": 72
+    },
+    {
+      "name": "The Optimist Daily",
+      "section": "Lighter",
+      "url": "https://www.optimistdaily.com/feed/",
+      "hours": 48
+    },
+    {
+      "name": "Atlas Obscura",
+      "section": "Curious",
+      "url": "https://www.atlasobscura.com/feeds/latest",
+      "hours": 48
+    },
+    {
+      "name": "Mental Floss",
+      "section": "Curious",
+      "url": "https://www.mentalfloss.com/rss.xml"
+    },
+    {
+      "name": "Futurity",
+      "section": "Curious",
+      "url": "https://www.futurity.org/feed/"
+    },
+    {
+      "name": "E! News",
+      "section": "Ent",
+      "url": "https://www.eonline.com/syndication/feeds/rssfeeds/topstories.xml"
+    },
+    {
+      "name": "TMZ",
+      "section": "Ent",
+      "url": "https://www.tmz.com/rss.xml"
+    },
+    {
+      "name": "IGN",
+      "section": "Ent",
+      "url": "https://feeds.ign.com/ign/all"
     }
   ],
   "google_news": [
@@ -870,6 +924,32 @@
       "section": "SportsTR",
       "q": "site:trtspor.com.tr when:1d",
       "lang": "tr"
+    },
+    {
+      "name": "AP Oddities",
+      "section": "Curious",
+      "q": "site:apnews.com oddities when:2d",
+      "hours": 48
+    },
+    {
+      "name": "People",
+      "section": "Ent",
+      "q": "site:people.com when:1d"
+    },
+    {
+      "name": "Entertainment Weekly",
+      "section": "Ent",
+      "q": "site:ew.com when:1d"
+    },
+    {
+      "name": "Vulture",
+      "section": "Ent",
+      "q": "site:vulture.com when:1d"
+    },
+    {
+      "name": "Polygon",
+      "section": "Ent",
+      "q": "site:polygon.com when:1d"
     }
   ]
 }
