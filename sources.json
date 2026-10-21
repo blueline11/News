@@ -42,11 +42,6 @@
       "url": "https://feeds.texastribune.org/feeds/main/"
     },
     {
-      "name": "KUT Austin",
-      "section": "Texas",
-      "url": "https://www.kut.org/news.rss"
-    },
-    {
       "name": "Daily Sabah",
       "section": "Turkiye",
       "url": "https://www.dailysabah.com/rss/turkiye"
@@ -345,6 +340,31 @@
       "name": "Courthouse News",
       "section": "US",
       "url": "https://www.courthousenews.com/feed/"
+    },
+    {
+      "name": "KXAN",
+      "section": "Texas",
+      "url": "https://www.kxan.com/feed/"
+    },
+    {
+      "name": "KVUE",
+      "section": "Texas",
+      "url": "https://www.kvue.com/feeds/syndication/rss/news/local"
+    },
+    {
+      "name": "Texas Standard",
+      "section": "Texas",
+      "url": "https://www.texasstandard.org/feed/"
+    },
+    {
+      "name": "Texas Observer",
+      "section": "Texas",
+      "url": "https://www.texasobserver.org/feed/"
+    },
+    {
+      "name": "Texas Scorecard",
+      "section": "Texas",
+      "url": "https://texasscorecard.com/feed/"
     }
   ],
   "google_news": [
@@ -452,6 +472,36 @@
       "name": "USA Today Nation",
       "section": "US",
       "q": "site:usatoday.com/story/news/nation when:1d"
+    },
+    {
+      "name": "Austin Monitor",
+      "section": "Texas",
+      "q": "site:austinmonitor.com when:2d"
+    },
+    {
+      "name": "Austin Chronicle",
+      "section": "Texas",
+      "q": "site:austinchronicle.com when:2d"
+    },
+    {
+      "name": "Community Impact",
+      "section": "Texas",
+      "q": "site:communityimpact.com austin when:2d"
+    },
+    {
+      "name": "Houston Chronicle",
+      "section": "Texas",
+      "q": "site:houstonchronicle.com when:1d"
+    },
+    {
+      "name": "Dallas Morning News",
+      "section": "Texas",
+      "q": "site:dallasnews.com when:1d"
+    },
+    {
+      "name": "San Antonio Express-News",
+      "section": "Texas",
+      "q": "site:expressnews.com when:1d"
     }
   ]
 }

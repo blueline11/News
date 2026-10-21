@@ -34,7 +34,7 @@ from markets import BOARD_CSS  # noqa: E402
 # how-to-refresh line under the title; the web copy sets its own
 HINT = os.environ.get("NEWS_HINT", "Updates by itself every 30 minutes.")
 CAP = 20
-TABS = ["Finance", "Top", "World", "US", "Politics", "WorldPol", "Texas", "Tech", "Science", "Turkiye", "Culture", "Sports"]
+TABS = ["Finance", "Top", "World", "US", "Politics", "WorldPol", "Texas", "Austin", "Tech", "Science", "Turkiye", "Culture", "Sports"]
 
 # Finance tab sub-groups, matched on the headline in this order; the last one takes the rest
 FIN_GROUPS = [
@@ -53,7 +53,7 @@ FIN_GROUPS = [
 MARKET_PULL = re.compile(r"\b(oil|crude|brent|opec|hormuz|tariffs?|sanctions?|trade (deal|war|talks)|"
                          r"fed|federal reserve|central bank|bond yields?|treasury yields?|"
                          r"export (ban|controls?)|stock markets?|wall st(reet)?)\b", re.I)
-TITLES = {"Top": "Top stories", "WorldPol": "World Politics", "Texas": "Texas & Austin", "Tech": "Tech", "Science": "Science & Health",
+TITLES = {"Top": "Top stories", "Austin": "Austin", "WorldPol": "World Politics", "Texas": "Texas & Austin", "Tech": "Tech", "Science": "Science & Health",
           "Turkiye": "Türkiye"}
 
 # headlines that are never news
@@ -86,7 +86,9 @@ SYN = {"french": "france", "paris": "france", "ukrainian": "ukraine", "kyiv": "u
 SPORT = re.compile(r"\b(nfl|nba|wnba|mlb|nhl|world series|alcs|nlcs|premier league|champions league|"
                    r"fifa|uefa|infantino|quarterback|qb|touchdown|tennis|golf(?! course)|cricket|odi|rugby|"
                    r"grand prix|formula 1|f1|ronaldo|mourinho|coach|playoffs?|league|striker|"
-                   r"olympic|gymnastics|boxing|ufc|49ers|rays|brewers|eagles|dodgers)\b", re.I)
+                   r"olympic|gymnastics|boxing|ufc|49ers|rays|brewers|eagles|dodgers|football|basketball|baseball|"
+                   r"softball|volleyball|soccer|ncaa|big 12|ole miss|quarterbacks?|longhorns|aggies|cowboys|"
+                   r"texans|astros|mavericks|mavs)\b", re.I)
 ECON = re.compile(r"\b(shares|stocks?|wall st|nasdaq|ftse|profit|earnings|ipo|forecast|"
                   r"oil prices|brent|bond yields?|fed|central bank|rate (hike|cut)s?|"
                   r"acquire|acquisition|billion deal|layoffs|job cuts|cut jobs|"
@@ -142,14 +144,33 @@ WP_ALSO_WORLD = {"Middle East Eye", "Guardian World", "Euronews", "Meduza", "Mos
 POLITICS_ONLY = {"Axios", "Semafor", "Washington Examiner", "Washington Examiner GN", "The Dispatch"}
 # Anadolu also covers world news; keep only its Turkey stories
 TR = re.compile(r"(türkiye|turkey|turkish|erdo[gğ]an|ankara|istanbul|izmir)", re.I)
+# Austin and the surrounding counties
+AUSTIN = re.compile(
+    r"\b(austin|austinites?|travis county|williamson county|hays county|bastrop|round rock|cedar park|"
+    r"pflugerville|georgetown|leander|kyle|buda|san marcos|lakeway|bee cave|dripping springs|manor|"
+    r"hutto|liberty hill|lago vista|apd|capmetro|cap metro|mopac|lake travis|lady bird lake|"
+    r"ut austin|longhorns|aisd|eanes|leander isd|round rock isd|cota|acl fest|austin city limits|sxsw)\b", re.I)
+AUSTIN_SRC = {"KXAN", "KVUE", "Austin local", "Austin Monitor", "Austin Chronicle", "Community Impact"}
+# big-city papers: a voice from each city, not a flood
+CITY_PAPERS = {"Houston Chronicle": 15, "Dallas Morning News": 15, "San Antonio Express-News": 15}
 TX = re.compile(r"\b(texas|austin|travis|abbott|paxton|houston|dallas|san antonio|"
                 r"round rock|cota|longhorns|ut |hays|williamson|txdot|ercot)\b", re.I)
 
 
 def resection(it, t):
     sec = it["section"]
-    if it["source"] == "Austin local" and not TX.search(t):
+    if it["source"] in ("Austin local", "KXAN", "KVUE") and not (TX.search(t) or AUSTIN.search(t)):
         return None  # wire copy republished by a local site; it is covered elsewhere
+    if sec == "Texas":
+        if SPORT.search(t):
+            return "Sports"
+        if it["source"] in CITY_PAPERS or it["source"] == "Texas Scorecard":
+            # they also run national stories, which US / Politics already have
+            if not TX.search(t) and (US_DOM.search(t) or POL.search(t)):
+                return None
+        if it["source"] == "Community Impact":  # covers all of Texas; keep the Austin area
+            return "Austin" if AUSTIN.search(t + " " + it["summary"]) else None
+        return "Austin" if it["source"] in AUSTIN_SRC or AUSTIN.search(t) else "Texas"
     if it["source"] == "Anadolu" and not TR.search(t):
         return None
     if it["source"] == "Bloomberg" and BIZ.search(t):
@@ -186,7 +207,9 @@ def fmt(d, f):
 def clean_title(it):
     t = it["title"]
     t = re.sub(r"^STAT\+:\s*", "", t)  # STAT's paywall marker
-    if it["outlet"]:  # Google News appends " - Outlet"
+    if it["outlet"] and t.endswith(" - " + it["outlet"]):  # Google News appends " - Outlet"
+        t = t[: -len(" - " + it["outlet"])]
+    elif it["outlet"]:
         t = re.sub(r"\s+-\s+[^-]+$", "", t)
         t = re.sub(r"\s+-\s+[^-]*\((NASDAQ|NYSE|AMEX|OTC|NYSEAMERICAN|CBOE)[^)]*\)$", "", t)
     return t.strip()
@@ -218,7 +241,8 @@ def label(it):
         o = it["outlet"]
         return base if o.lower().startswith((base.lower(), "afp.com", "ap news")) else o
     if s == "Austin local":
-        return it["outlet"] or "Local"
+        o = it["outlet"] or "Local"
+        return {"KXAN Austin": "KXAN", "KVUE": "KVUE"}.get(o, o)
     for brand in ("CNBC", "MarketWatch"):
         if s.startswith(brand):
             return brand
@@ -256,10 +280,11 @@ def main():
         it = dict(it, title=t, w=words(t), label=label(it), section=sec)
         if len(it["w"]) < 2:
             continue
-        if sec == "World" and it["source"] in WP_ALSO_WORLD:
-            # regional outlets add a voice to World, not a flood: newest REGIONAL_CAP each
+        cap = (REGIONAL_CAP if sec == "World" and it["source"] in WP_ALSO_WORLD
+               else CITY_PAPERS.get(it["source"]))
+        if cap:  # regional outlets add a voice, not a flood: newest `cap` each
             regional[it["source"]] = regional.get(it["source"], 0) + 1
-            if regional[it["source"]] > REGIONAL_CAP:
+            if regional[it["source"]] > cap:
                 continue
         items.append(it)
 
@@ -298,7 +323,9 @@ def main():
         c["n"] = len(c["labels"])
         # lead item: one with a real summary, else newest
         c["lead"] = next((i for i in c["items"] if len(i["summary"]) > 40), c["items"][0])
-        secs = [i["section"] for i in c["items"]]
+        # a city paper's reprint of a wire story shouldn't pull the story into Texas
+        own = [i for i in c["items"] if i["source"] not in CITY_PAPERS] or c["items"]
+        secs = [i["section"] for i in own]
         c["section"] = max(set(secs), key=secs.count)
         c["time"] = max(i["published"] for i in c["items"])
 
@@ -371,7 +398,7 @@ def main():
         if not cs:
             continue
         total += len(cs) if sec != "Top" else 0
-        if sec != "WorldPol":  # shown inside the Politics tab
+        if sec not in ("WorldPol", "Austin"):  # shown inside Politics / Texas
             tabbar.append(f'<button data-tab="{sid}">{escape(name)}</button>')
         panels.append(f'<section class="panel" data-tab="{sid}" hidden>' + "\n".join(inner) + "</section>")
 
@@ -492,7 +519,8 @@ footer {{ margin-top:36px; color:var(--muted); font:13px/1.5 "Source Sans 3", sy
 <div class="bar">
   <div class="tabs">{tabbar}</div>
   <div class="views stdviews"><button data-view="topic">By topic</button><button data-view="latest">Latest first</button><button data-view="markets" class="finonly">Markets</button><button data-view="radar" class="finonly">Radar</button></div>
-  <div class="views polviews"><button data-view="us">US</button><button data-view="world">World</button><button data-view="latest">Latest first</button></div>
+  <div class="views splitviews" data-for="politics"><button data-view="us">US</button><button data-view="world">World</button><button data-view="latest">Latest first</button></div>
+  <div class="views splitviews" data-for="texas"><button data-view="austin">Austin</button><button data-view="state">Texas</button><button data-view="latest">Latest first</button></div>
 </div>
 <div id="strip" hidden>{strip}</div>
 <div id="board" class="boardcard" hidden>{board}</div>
@@ -509,18 +537,21 @@ Feeds that failed: {failed}.</footer>
 </div>
 <script>
 const st = {{ tab: "finance", view: "topic" }};
+// tabs split into sub-views: view name -> panel
+const SPLIT = {{ politics: {{ us: "politics", world: "worldpol" }}, texas: {{ austin: "austin", state: "texas" }} }};
+const SUBVIEWS = ["us", "world", "austin", "state"];
 try {{ Object.assign(st, JSON.parse(localStorage.getItem("newsState") || "{{}}")); }} catch (e) {{}}
 const tabs = [...document.querySelectorAll(".tabs button")];
 if (st.tab === "markets" || st.tab === "radar") {{ st.view = st.tab; st.tab = "finance"; }}  // these used to be tabs
 if (!tabs.some(b => b.dataset.tab === st.tab)) st.tab = tabs[0].dataset.tab;
 function render() {{
   tabs.forEach(b => b.classList.toggle("on", b.dataset.tab === st.tab));
-  const pol = st.tab === "politics";
   if (st.tab === "worldpol") {{ st.tab = "politics"; st.view = "world"; }}  // used to be a tab
-  if (pol && !["us", "world", "latest"].includes(st.view)) st.view = "us";
-  if (!pol && (st.view === "us" || st.view === "world")) st.view = "topic";
-  document.querySelector(".stdviews").style.display = pol ? "none" : "";
-  document.querySelector(".polviews").style.display = pol ? "" : "none";
+  const sp = SPLIT[st.tab];
+  if (sp && !(st.view in sp) && st.view !== "latest") st.view = Object.keys(sp)[0];
+  if (!sp && SUBVIEWS.includes(st.view)) st.view = "topic";
+  document.querySelector(".stdviews").style.display = sp ? "none" : "";
+  document.querySelectorAll(".splitviews").forEach(v => v.style.display = v.dataset.for === st.tab ? "" : "none");
   document.querySelectorAll(".views button").forEach(b => b.classList.toggle("on", b.dataset.view === st.view));
   const fin = st.tab === "finance";
   if (!fin && (st.view === "markets" || st.view === "radar")) st.view = "topic";
@@ -530,10 +561,10 @@ function render() {{
   document.getElementById("strip").hidden = !fin || mk;
   document.getElementById("board").hidden = !board;
   document.getElementById("radar").hidden = !rad;
-  const listView = st.view === "topic" || st.view === "us" || st.view === "world";
+  const listView = st.view === "topic" || !!(sp && st.view in sp);
   document.getElementById("v-topic").hidden = mk || !listView;
   document.getElementById("v-latest").hidden = mk || st.view !== "latest";
-  const panel = pol ? (st.view === "world" ? "worldpol" : "politics") : st.tab;
+  const panel = sp && st.view in sp ? sp[st.view] : st.tab;
   document.querySelectorAll(".panel").forEach(p => p.hidden = p.dataset.tab !== panel);
   if (st.view === "latest") {{
     let head = null, any = false;
@@ -541,7 +572,7 @@ function render() {{
     for (const el of document.getElementById("v-latest").children) {{
       if (el.tagName === "H4") {{ close(); head = el; any = false; continue; }}
       const own = el.dataset.tabs.split(" ");
-      const show = pol ? (own.includes("politics") || own.includes("worldpol")) : own.includes(st.tab);
+      const show = sp ? Object.values(sp).some(k => own.includes(k)) : own.includes(st.tab);
       el.hidden = !show; any = any || show;
     }}
     close();
