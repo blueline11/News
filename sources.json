@@ -300,6 +300,51 @@
       "name": "Al-Monitor",
       "section": "World",
       "url": "https://www.al-monitor.com/rss"
+    },
+    {
+      "name": "NYT US",
+      "section": "US",
+      "url": "https://rss.nytimes.com/services/xml/rss/nyt/US.xml"
+    },
+    {
+      "name": "LA Times Nation",
+      "section": "US",
+      "url": "https://www.latimes.com/nation/rss2.0.xml"
+    },
+    {
+      "name": "CBS News",
+      "section": "US",
+      "url": "https://www.cbsnews.com/latest/rss/us"
+    },
+    {
+      "name": "ABC News",
+      "section": "US",
+      "url": "https://abcnews.go.com/abcnews/usheadlines"
+    },
+    {
+      "name": "NBC News",
+      "section": "US",
+      "url": "https://feeds.nbcnews.com/nbcnews/public/news"
+    },
+    {
+      "name": "Fox News US",
+      "section": "US",
+      "url": "https://moxie.foxnews.com/google-publisher/us.xml"
+    },
+    {
+      "name": "ProPublica",
+      "section": "US",
+      "url": "https://www.propublica.org/feeds/propublica/main"
+    },
+    {
+      "name": "Stateline",
+      "section": "US",
+      "url": "https://stateline.org/feed/"
+    },
+    {
+      "name": "Courthouse News",
+      "section": "US",
+      "url": "https://www.courthousenews.com/feed/"
     }
   ],
   "google_news": [
@@ -397,6 +442,16 @@
       "name": "Middle East Eye",
       "section": "WorldPol",
       "q": "site:middleeasteye.net when:1d"
+    },
+    {
+      "name": "Washington Post National",
+      "section": "US",
+      "q": "site:washingtonpost.com/nation when:1d"
+    },
+    {
+      "name": "USA Today Nation",
+      "section": "US",
+      "q": "site:usatoday.com/story/news/nation when:1d"
     }
   ]
 }

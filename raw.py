@@ -211,11 +211,8 @@ def label(it):
         return "BBC"
     if s.startswith("NPR"):
         return "NPR"
-    if s in ("WSJ", "Bloomberg", "Benzinga", "CNN", "Middle East Eye", "WSJ Politics", "Washington Post", "Punchbowl News",
-             "USA Today", "Washington Examiner GN"):
-        s = {"WSJ Politics": "WSJ", "Washington Examiner GN": "Washington Examiner",
-             "Punchbowl News": "Punchbowl"}.get(s, s)
-        return s
+    if s in NAMES:
+        return NAMES[s]
     if s.startswith(("Reuters", "AP", "AFP")) and it["outlet"]:
         base = s.split(" ")[0]
         o = it["outlet"]
@@ -225,13 +222,21 @@ def label(it):
     for brand in ("CNBC", "MarketWatch"):
         if s.startswith(brand):
             return brand
-    names = {"Guardian World": "Guardian", "FT World": "FT", "NYT Politics": "NYT", "NYT World": "NYT", "LA Times Politics": "LA Times", "Fox News Politics": "Fox News",
-             "WSJ Politics": "WSJ", "Washington Examiner GN": "Washington Examiner",
-             "Washington Post": "Washington Post", "Punchbowl News": "Punchbowl", "USA Today": "USA Today"}
-    if s in names:
-        return names[s]
-    return {"SCMP Asia": "SCMP", "Federal Reserve": "Fed", "Hurriyet Daily News": "Hürriyet DN",
-            "Anadolu": "Anadolu (AA)"}.get(s, s)
+    return s
+
+
+# source name in sources.json -> name shown on the card (checked before the Google-News outlet logic)
+NAMES = {
+    "WSJ": "WSJ", "WSJ Politics": "WSJ", "Bloomberg": "Bloomberg", "Benzinga": "Benzinga", "CNN": "CNN",
+    "Middle East Eye": "Middle East Eye", "Punchbowl News": "Punchbowl", "USA Today": "USA Today",
+    "USA Today Nation": "USA Today", "Washington Post": "Washington Post",
+    "Washington Post National": "Washington Post", "Washington Examiner GN": "Washington Examiner",
+    "NYT US": "NYT", "NYT World": "NYT", "NYT Politics": "NYT",
+    "LA Times Nation": "LA Times", "LA Times Politics": "LA Times",
+    "Fox News US": "Fox News", "Fox News Politics": "Fox News",
+    "Guardian World": "Guardian", "FT World": "FT", "SCMP Asia": "SCMP", "Federal Reserve": "Fed",
+    "Hurriyet Daily News": "Hürriyet DN", "Anadolu": "Anadolu (AA)",
+}
 
 
 def main():
