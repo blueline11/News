@@ -34,7 +34,7 @@ from markets import BOARD_CSS  # noqa: E402
 # how-to-refresh line under the title; the web copy sets its own
 HINT = os.environ.get("NEWS_HINT", "Updates by itself every 30 minutes.")
 CAP = 20
-TABS = ["Finance", "Markets", "Top", "World", "US", "Texas", "Tech", "Science", "Turkiye", "Culture", "Sports"]
+TABS = ["Finance", "Markets", "Radar", "Top", "World", "US", "Texas", "Tech", "Science", "Turkiye", "Culture", "Sports"]
 
 # Finance tab sub-groups, matched on the headline in this order; the last one takes the rest
 FIN_GROUPS = [
@@ -289,8 +289,8 @@ def main():
     for sec in TABS:
         sid = sec.lower()
         name = TITLES.get(sec, sec)
-        if sec == "Markets":
-            tabbar.append('<button data-tab="markets">Markets</button>')
+        if sec in ("Markets", "Radar"):
+            tabbar.append(f'<button data-tab="{sid}">{sec}</button>')
             continue
         if sec == "Top":
             cs = top
@@ -325,8 +325,14 @@ def main():
             last_hour = hour
         latest.append(story(c, True))
 
-    board = strip = ""
+    board = strip = radar_html = ""
     if not os.environ.get("NEWS_NO_MARKETS"):
+        try:
+            import radar
+            radar_html, _ = radar.build(fmt, CT)
+        except Exception as e:
+            radar_html = f'<p class="muted lede">Radar unavailable ({escape(str(e))}).</p>'
+
         try:
             import markets
             board = markets.board_html()
@@ -339,7 +345,7 @@ def main():
     html = TEMPLATE.format(
         when=escape(fmt(fetched, "%A, %B %d · %#I:%M %p CT")),
         total=total, raw=len(snap["items"]), hours=snap["hours"],
-        tabbar="".join(tabbar), board=board, strip=strip, panels="\n".join(panels),
+        tabbar="".join(tabbar), board=board, strip=strip, radar=radar_html, panels="\n".join(panels),
         latest="\n".join(latest), hint=HINT, failed=escape(failed),
         board_css=BOARD_CSS)
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
@@ -427,6 +433,7 @@ footer {{ margin-top:36px; color:var(--muted); font:13px/1.5 "Source Sans 3", sy
 </div>
 <div id="strip" hidden>{strip}</div>
 <div id="board" class="boardcard" hidden>{board}</div>
+<div id="radar" hidden>{radar}</div>
 <div id="v-topic">
 {panels}
 </div>
@@ -445,9 +452,10 @@ if (!tabs.some(b => b.dataset.tab === st.tab)) st.tab = tabs[0].dataset.tab;
 function render() {{
   tabs.forEach(b => b.classList.toggle("on", b.dataset.tab === st.tab));
   document.querySelectorAll(".views button").forEach(b => b.classList.toggle("on", b.dataset.view === st.view));
-  const mk = st.tab === "markets";
+  const mk = st.tab === "markets" || st.tab === "radar";  // tabs with their own fixed layout
   document.getElementById("strip").hidden = st.tab !== "finance";
-  document.getElementById("board").hidden = !mk;
+  document.getElementById("board").hidden = st.tab !== "markets";
+  document.getElementById("radar").hidden = st.tab !== "radar";
   document.querySelector(".views").style.display = mk ? "none" : "";
   document.getElementById("v-topic").hidden = mk || st.view !== "topic";
   document.getElementById("v-latest").hidden = mk || st.view !== "latest";
@@ -463,7 +471,8 @@ function render() {{
     close();
   }}
   // format A / B: alternate among the cards actually on screen, per block
-  const root = st.view === "latest" ? [document.getElementById("v-latest")]
+  const root = st.tab === "radar" ? [document.getElementById("radar")]
+             : st.view === "latest" ? [document.getElementById("v-latest")]
              : [...document.querySelectorAll(".panel")].filter(p => !p.hidden);
   root.forEach(r => {{
     let i = 0;
