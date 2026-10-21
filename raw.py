@@ -599,7 +599,10 @@ h1 {{ margin:0; font:700 32px "Source Serif 4", Georgia, serif; letter-spacing:-
 .sub {{ color:var(--muted); font:14px "Source Sans 3", system-ui, sans-serif; margin-top:4px; }}
 .bar {{ position:sticky; top:0; z-index:3; background:var(--bg); border-bottom:1px solid var(--line);
   padding:8px 0; }}
-.tabs {{ display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; font:14px "Source Sans 3", system-ui, sans-serif; }}
+.tabs {{ display:flex; flex-wrap:wrap; gap:6px; font:14px "Source Sans 3", system-ui, sans-serif; }}
+/* phones: one row that scrolls sideways, right edge fades to show there is more */
+@media (max-width:600px) {{ .tabs {{ flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; padding-right:24px;
+  -webkit-mask-image:linear-gradient(to right, #000 85%, transparent); mask-image:linear-gradient(to right, #000 85%, transparent); }} }}
 .tabs::-webkit-scrollbar {{ display:none; }}
 .tabs button {{ flex:none; font:inherit; padding:6px 12px; border-radius:16px; cursor:pointer;
   border:1px solid var(--line); background:transparent; color:var(--muted); }}
