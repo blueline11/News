@@ -215,8 +215,9 @@ def main():
                 continue
             seen.add(it["label"])
             links.append(f'<a href="{escape(it["url"])}" target="_blank" rel="noopener">{escape(it["label"])}</a>')
-        t = datetime.fromisoformat(c["time"]).astimezone(CT) if c["time"] else None
-        t = fmt(t, "%a %#I:%M %p") if t else ""
+        d = datetime.fromisoformat(c["time"]).astimezone(CT) if c["time"] else None
+        t = (f'<time datetime="{d.isoformat()}" title="{fmt(d, "%a %#I:%M %p")}">'
+             f'{fmt(d, "%a %#I:%M %p")}</time>') if d else ""
         badge = f'<span class="n">{c["n"]} outlets</span>' if c["n"] > 1 else ""
         sec = f'<span class="sec">{escape(TITLES.get(c["section"], c["section"]))}</span>' if show_sec else ""
         summ = lead["summary"]
@@ -226,8 +227,8 @@ def main():
         p = f"<p>{escape(summ)}</p>" if summ else ""
         tabs = " ".join(sorted(c["tabs"]))
         return (f'<article class="story" data-tabs="{tabs}"><h3>{escape(lead["title"])}</h3>{p}'
-                f'<div class="meta">{sec}{badge}<span>{t}</span>'
-                f'<span class="src">{" · ".join(links)}</span></div></article>')
+                f'<div class="meta">{sec}{badge}{t}</div>'
+                f'<div class="src">{"".join(links)}</div></article>')
 
     def ranked(cs):
         # stories carried by several outlets first, then newest
@@ -318,50 +319,64 @@ TEMPLATE = """<!doctype html>
 <link rel="apple-touch-icon" href="icon.png">
 <meta name="apple-mobile-web-app-title" content="News">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800&display=swap" rel="stylesheet">
 <style>
 :root {{ --bg:#faf8f4; --fg:#1f1d1a; --muted:#6b665e; --line:#e4dfd6; --accent:#2d5a5a;
-  --badge:#e2ece9; --link:#2d5a8a; --up:#1d7a3e; --dn:#b3261e; }}
+  --badge:#e2ece9; --link:#2d5a8a; --up:#1d7a3e; --dn:#b3261e;
+  --card:#ffffff; --card-b:#eef4f2; --edge:#2d5a5a; --edge-b:#c0843d; --shadow:0 1px 3px rgba(40,30,20,.08); }}
 @media (prefers-color-scheme: dark) {{ :root:not([data-theme="light"]) {{
   --bg:#17161a; --fg:#e8e4dc; --muted:#9a958c; --line:#2c2a30; --accent:#8cc7c0;
-  --badge:#22312f; --link:#8fb6e0; --up:#5fc787; --dn:#ff8a80; }} }}
+  --badge:#22312f; --link:#8fb6e0; --up:#5fc787; --dn:#ff8a80;
+  --card:#211f25; --card-b:#1c2726; --edge:#8cc7c0; --edge-b:#e0a56f; --shadow:none; }} }}
 :root[data-theme="dark"] {{ --bg:#17161a; --fg:#e8e4dc; --muted:#9a958c; --line:#2c2a30;
-  --accent:#8cc7c0; --badge:#22312f; --link:#8fb6e0; --up:#5fc787; --dn:#ff8a80; }}
+  --accent:#8cc7c0; --badge:#22312f; --link:#8fb6e0; --up:#5fc787; --dn:#ff8a80;
+  --card:#211f25; --card-b:#1c2726; --edge:#8cc7c0; --edge-b:#e0a56f; --shadow:none; }}
 * {{ box-sizing:border-box; }}
 body {{ margin:0; background:var(--bg); color:var(--fg);
-  font:17px/1.55 Georgia, "Times New Roman", serif; }}
+  font:17px/1.55 "Nunito Sans", system-ui, -apple-system, "Segoe UI", sans-serif; }}
 .wrap {{ max-width:760px; margin:0 auto; padding:0 16px 80px; }}
 header {{ padding:28px 0 8px; }}
-h1 {{ margin:0; font-size:28px; }}
-.sub {{ color:var(--muted); font:14px system-ui, sans-serif; margin-top:4px; }}
+h1 {{ margin:0; font-size:30px; font-weight:800; letter-spacing:-.01em; }}
+.sub {{ color:var(--muted); font:14px "Nunito Sans", system-ui, sans-serif; margin-top:4px; }}
 .bar {{ position:sticky; top:0; z-index:3; background:var(--bg); border-bottom:1px solid var(--line);
   padding:8px 0; }}
-.tabs {{ display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; font:14px system-ui, sans-serif; }}
+.tabs {{ display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; font:14px "Nunito Sans", system-ui, sans-serif; }}
 .tabs::-webkit-scrollbar {{ display:none; }}
 .tabs button {{ flex:none; font:inherit; padding:6px 12px; border-radius:16px; cursor:pointer;
   border:1px solid var(--line); background:transparent; color:var(--muted); }}
 .tabs button.on {{ background:var(--accent); border-color:var(--accent); color:var(--bg); }}
-.views {{ display:flex; gap:14px; margin-top:8px; font:13px system-ui, sans-serif; }}
+.views {{ display:flex; gap:14px; margin-top:8px; font:13px "Nunito Sans", system-ui, sans-serif; }}
 .views button {{ font:inherit; border:0; background:none; padding:2px 0; cursor:pointer; color:var(--muted);
   border-bottom:2px solid transparent; }}
 .views button.on {{ color:var(--fg); border-bottom-color:var(--accent); }}
 .panel {{ padding-top:10px; }}
-h3.fgroup {{ font:600 15px system-ui, sans-serif; color:var(--accent); margin:26px 0 0;
+h3.fgroup {{ font:600 15px "Nunito Sans", system-ui, sans-serif; color:var(--accent); margin:26px 0 0;
   padding-bottom:4px; border-bottom:2px solid var(--accent); }}
-h4.group {{ font:600 13px system-ui, sans-serif; text-transform:uppercase; letter-spacing:.06em;
+h4.group {{ font:600 13px "Nunito Sans", system-ui, sans-serif; text-transform:uppercase; letter-spacing:.06em;
   color:var(--muted); margin:18px 0 2px; }}
-.count {{ font:13px system-ui, sans-serif; color:var(--muted); margin-left:10px; font-weight:400; }}
-.lede {{ font:14px system-ui, sans-serif; margin:10px 0 0; }}
-.story {{ padding:11px 0; border-bottom:1px solid var(--line); }}
-.story h3 {{ font-size:18px; margin:0 0 3px; line-height:1.35; }}
-.story p {{ margin:0 0 5px; font-size:16px; }}
-.meta {{ font:13px system-ui, sans-serif; color:var(--muted); display:flex; flex-wrap:wrap; gap:4px 12px; align-items:center; }}
-.meta a {{ color:var(--link); text-decoration:none; }}
-.n, .sec {{ background:var(--badge); color:var(--accent); padding:1px 6px; border-radius:3px; font-weight:600; font-size:11px; }}
-h4.hour {{ font:600 13px system-ui, sans-serif; text-transform:uppercase; letter-spacing:.06em;
+.count {{ font:13px "Nunito Sans", system-ui, sans-serif; color:var(--muted); margin-left:10px; font-weight:400; }}
+.lede {{ font:14px "Nunito Sans", system-ui, sans-serif; margin:10px 0 0; }}
+.story {{ background:var(--card); border-radius:12px; padding:14px 16px 12px; margin:12px 0;
+  box-shadow:var(--shadow); border-left:4px solid var(--edge); }}
+.story.alt {{ background:var(--card-b); border-left-color:var(--edge-b); }}
+.story h3 {{ font-size:18px; font-weight:700; margin:0 0 4px; line-height:1.3; }}
+.story p {{ margin:0 0 8px; font-size:15.5px; color:var(--fg); opacity:.85; }}
+.src {{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }}
+.src a {{ font:600 12px "Nunito Sans", system-ui, sans-serif; color:var(--link); text-decoration:none;
+  border:1px solid var(--line); border-radius:999px; padding:2px 10px; background:var(--bg); }}
+.src a:hover {{ border-color:var(--link); }}
+.meta {{ font:13px "Nunito Sans", system-ui, sans-serif; color:var(--muted); display:flex; flex-wrap:wrap; gap:4px 12px; align-items:center; }}
+time {{ color:var(--muted); }}
+.n, .sec {{ background:var(--badge); color:var(--accent); padding:1px 8px; border-radius:999px; font-weight:700; font-size:11px; }}
+h4.hour {{ font:600 13px "Nunito Sans", system-ui, sans-serif; text-transform:uppercase; letter-spacing:.06em;
   color:var(--accent); margin:22px 0 0; padding-bottom:4px; border-bottom:1px solid var(--line); }}
 details {{ margin-top:8px; }}
-summary {{ cursor:pointer; color:var(--link); font:14px system-ui, sans-serif; padding:10px 0; }}
-footer {{ margin-top:36px; color:var(--muted); font:13px/1.5 system-ui, sans-serif; }}
+summary {{ cursor:pointer; color:var(--link); font:14px "Nunito Sans", system-ui, sans-serif; padding:10px 0; }}
+.boardcard {{ background:var(--card); border-radius:12px; padding:4px 14px 10px; margin-top:14px;
+  box-shadow:var(--shadow); }}
+footer {{ margin-top:36px; color:var(--muted); font:13px/1.5 "Nunito Sans", system-ui, sans-serif; }}
 {board_css}
 </style>
 </head>
@@ -372,7 +387,7 @@ footer {{ margin-top:36px; color:var(--muted); font:13px/1.5 system-ui, sans-ser
   <div class="tabs">{tabbar}</div>
   <div class="views"><button data-view="topic">By topic</button><button data-view="latest">Latest first</button></div>
 </div>
-<div id="board" hidden>{board}</div>
+<div id="board" class="boardcard" hidden>{board}</div>
 <div id="v-topic">
 {panels}
 </div>
@@ -405,8 +420,28 @@ function render() {{
     }}
     close();
   }}
+  // format A / B: alternate among the cards actually on screen, per block
+  const root = st.view === "latest" ? [document.getElementById("v-latest")]
+             : [...document.querySelectorAll(".panel")].filter(p => !p.hidden);
+  root.forEach(r => {{
+    let i = 0;
+    r.querySelectorAll("article.story").forEach(a => {{
+      if (a.hidden) return;
+      if (a.previousElementSibling && /^H[34]$/.test(a.previousElementSibling.tagName) && !a.closest("#v-latest")) i = 0;
+      a.classList.toggle("alt", i++ % 2 === 1);
+    }});
+  }});
   try {{ localStorage.setItem("newsState", JSON.stringify(st)); }} catch (e) {{}}
 }}
+function ago() {{
+  const now = Date.now();
+  document.querySelectorAll("time[datetime]").forEach(t => {{
+    const m = Math.round((now - Date.parse(t.getAttribute("datetime"))) / 60000);
+    t.textContent = m < 1 ? "just now" : m < 60 ? m + " min ago"
+      : m < 24 * 60 ? Math.round(m / 60) + " h ago" : t.title;
+  }});
+}}
+ago(); setInterval(ago, 60000);
 tabs.forEach(b => b.onclick = () => {{ st.tab = b.dataset.tab; render(); window.scrollTo(0, 0); }});
 document.querySelectorAll(".views button").forEach(b => b.onclick = () => {{ st.view = b.dataset.view; render(); }});
 render();
