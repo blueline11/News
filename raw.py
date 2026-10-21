@@ -104,6 +104,12 @@ US_DOM = re.compile(
     r"rhode island|south carolina|south dakota|tennessee|texas|utah|vermont|virginia|"
     r"west virginia|wisconsin|wyoming|chicago|los angeles|san francisco|philadelphia|boston|"
     r"seattle|atlanta|miami|detroit|minneapolis|washington,? d\.?c\.?)\b", re.I)
+BIZ = re.compile(
+    r"\b(market|stocks?|shares|bonds?|treasur\w*|yields?|investors?|traders?|banks?|banking|"
+    r"funds?|hedge|private credit|credit|debt|ipo|deal|stake|buys?|sells?|acquir\w*|merger|"
+    r"spins? off|billion|million|profit|earnings|revenue|sales|outlook|forecast|ceo|"
+    r"crude|oil|gas|gold|copper|commodit\w*|currenc\w*|dollar|yen|euro|yuan|rupee|"
+    r"inflation|rates?|central bank|economy|economic|gdp|tariffs?|exports?|imports?)\b", re.I)
 # Anadolu also covers world news; keep only its Turkey stories
 TR = re.compile(r"(türkiye|turkey|turkish|erdo[gğ]an|ankara|istanbul|izmir)", re.I)
 TX = re.compile(r"\b(texas|austin|travis|abbott|paxton|houston|dallas|san antonio|"
@@ -116,6 +122,8 @@ def resection(it, t):
         return None  # wire copy republished by a local site; it is covered elsewhere
     if it["source"] == "Anadolu" and not TR.search(t):
         return None
+    if it["source"] == "Bloomberg" and BIZ.search(t):
+        return "Finance"
     if sec in ("World", "US"):
         if SPORT.search(t):
             return "Sports"
@@ -158,8 +166,8 @@ def label(it):
         return "BBC"
     if s.startswith("NPR"):
         return "NPR"
-    if s == "WSJ":
-        return "WSJ"
+    if s in ("WSJ", "Bloomberg"):
+        return s
     if s.startswith(("Reuters", "AP", "AFP")) and it["outlet"]:
         base = s.split(" ")[0]
         o = it["outlet"]
