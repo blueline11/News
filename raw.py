@@ -34,7 +34,7 @@ from markets import BOARD_CSS  # noqa: E402
 # how-to-refresh line under the title; the web copy sets its own
 HINT = os.environ.get("NEWS_HINT", "Updates by itself every 30 minutes.")
 CAP = 20
-TABS = ["Finance", "Top", "World", "US", "Politics", "WorldPol", "Texas", "Austin", "Tech", "AI", "Science", "Turkiye", "Culture", "Sports"]
+TABS = ["Finance", "Top", "World", "US", "Politics", "WorldPol", "Texas", "Austin", "Tech", "AI", "Science", "Health", "Turkiye", "Culture", "Sports"]
 
 # Finance tab sub-groups, matched on the headline in this order; the last one takes the rest
 FIN_GROUPS = [
@@ -53,7 +53,7 @@ FIN_GROUPS = [
 MARKET_PULL = re.compile(r"\b(oil|crude|brent|opec|hormuz|tariffs?|sanctions?|trade (deal|war|talks)|"
                          r"fed|federal reserve|central bank|bond yields?|treasury yields?|"
                          r"export (ban|controls?)|stock markets?|wall st(reet)?)\b", re.I)
-TITLES = {"Top": "Top stories", "AI": "AI", "Austin": "Austin", "WorldPol": "World Politics", "Texas": "Texas & Austin", "Tech": "Tech", "Science": "Science & Health",
+TITLES = {"Top": "Top stories", "Health": "Health", "AI": "AI", "Austin": "Austin", "WorldPol": "World Politics", "Texas": "Texas & Austin", "Tech": "Tech", "Science": "Science & Health",
           "Turkiye": "Türkiye"}
 
 # headlines that are never news
@@ -157,6 +157,21 @@ TECH = re.compile(
     r"app store|social media|starlink|robots?|robotics|quantum|data cent(er|re)s?|cloud computing|"
     r"silicon valley|tech giants?|big tech|5g|satellites?|electric vehicles?|self-driving|waymo|"
     r"tesla autopilot|open source|encryption|algorithm\w*)\b", re.I)
+# health and medicine
+HEALTH = re.compile(
+    r"\b(health|healthcare|hospitals?|patients?|diseases?|virus(es)?|vaccines?|vaccinations?|cancers?|"
+    r"tumou?rs?|ebola|measles|covid(-19)?|influenza|flu|bird flu|h5n1|mpox|outbreaks?|epidemics?|"
+    r"pandemics?|fda|cdc|world health organization|medical|medicine|medicines|clinical trials?|"
+    r"drug (approval|trial|prices)|obesity|diabetes|alzheimer'?s|dementia|mental health|depression|"
+    r"suicides?|overdoses?|opioids?|nursing homes?|surgery|surgeons?|doctors?|nurses?|antibiotics?)\b", re.I)
+# science, space, climate
+SCI = re.compile(
+    r"\b(scientists?|researchers|study finds|new study|species|fossils?|dinosaurs?|astronom\w*|"
+    r"astronauts?|nasa|telescope|spacecraft|space station|mars|lunar|moon mission|asteroids?|comets?|"
+    r"galax(y|ies)|black holes?|climate change|global warming|el ni[nñ]o|la ni[nñ]a|physics|genomes?|"
+    r"dna|archaeolog\w*|extinct\w*|emissions|carbon dioxide|coral reefs?|glaciers?)\b", re.I)
+# high-volume feeds: newest N each
+SOURCE_CAPS = {"Phys.org": 15, "Medical Xpress": 15, "Nature": 10}
 # Austin and the surrounding counties
 AUSTIN = re.compile(
     r"\b(austin|austinites?|travis county|williamson county|hays county|bastrop|round rock|cedar park|"
@@ -215,6 +230,10 @@ def resection(it, t):
             return "Politics"
         if sec == "World" and WPOL.search(t):
             return "WorldPol"
+        if HEALTH.search(t):
+            return "Health"
+        if SCI.search(t):
+            return "Science"
     return "Finance" if sec == "Economy" else sec
 
 
@@ -280,7 +299,8 @@ NAMES = {
     "Fox News US": "Fox News", "Fox News Politics": "Fox News",
     "Guardian World": "Guardian", "FT World": "FT", "SCMP Asia": "SCMP", "Federal Reserve": "Fed",
     "Hurriyet Daily News": "Hürriyet DN", "Anadolu": "Anadolu (AA)",
-    "VentureBeat": "VentureBeat", "Rest of World": "Rest of World", "BleepingComputer": "BleepingComputer", "MIT Technology Review": "MIT Tech Review",
+    "NYT Science": "NYT", "NYT Health": "NYT", "Carbon Brief": "Carbon Brief", "WHO": "WHO",
+    "CIDRAP": "CIDRAP", "VentureBeat": "VentureBeat", "Rest of World": "Rest of World", "BleepingComputer": "BleepingComputer", "MIT Technology Review": "MIT Tech Review",
 }
 
 
@@ -302,7 +322,7 @@ def main():
         if len(it["w"]) < 2:
             continue
         cap = (REGIONAL_CAP if sec == "World" and it["source"] in WP_ALSO_WORLD
-               else CITY_PAPERS.get(it["source"]))
+               else CITY_PAPERS.get(it["source"]) or SOURCE_CAPS.get(it["source"]))
         if cap:  # regional outlets add a voice, not a flood: newest `cap` each
             regional[it["source"]] = regional.get(it["source"], 0) + 1
             if regional[it["source"]] > cap:
@@ -419,7 +439,7 @@ def main():
         if not cs:
             continue
         total += len(cs) if sec != "Top" else 0
-        if sec not in ("WorldPol", "Austin", "AI"):  # shown inside Politics / Texas / Tech
+        if sec not in ("WorldPol", "Austin", "AI", "Health"):  # shown inside Politics / Texas / Tech / Science
             tabbar.append(f'<button data-tab="{sid}">{escape(name)}</button>')
         panels.append(f'<section class="panel" data-tab="{sid}" hidden>' + "\n".join(inner) + "</section>")
 
@@ -542,6 +562,7 @@ footer {{ margin-top:36px; color:var(--muted); font:13px/1.5 "Source Sans 3", sy
   <div class="views stdviews"><button data-view="topic">By topic</button><button data-view="latest">Latest first</button><button data-view="markets" class="finonly">Markets</button><button data-view="radar" class="finonly">Radar</button></div>
   <div class="views splitviews" data-for="politics"><button data-view="us">US</button><button data-view="world">World</button><button data-view="latest">Latest first</button></div>
   <div class="views splitviews" data-for="tech"><button data-view="ai">AI</button><button data-view="gear">Tech</button><button data-view="latest">Latest first</button></div>
+  <div class="views splitviews" data-for="science"><button data-view="sci">Science</button><button data-view="health">Health</button><button data-view="latest">Latest first</button></div>
   <div class="views splitviews" data-for="texas"><button data-view="austin">Austin</button><button data-view="state">Texas</button><button data-view="latest">Latest first</button></div>
 </div>
 <div id="strip" hidden>{strip}</div>
@@ -560,8 +581,8 @@ Feeds that failed: {failed}.</footer>
 <script>
 const st = {{ tab: "finance", view: "topic" }};
 // tabs split into sub-views: view name -> panel
-const SPLIT = {{ politics: {{ us: "politics", world: "worldpol" }}, texas: {{ austin: "austin", state: "texas" }}, tech: {{ ai: "ai", gear: "tech" }} }};
-const SUBVIEWS = ["us", "world", "austin", "state", "ai", "gear"];
+const SPLIT = {{ politics: {{ us: "politics", world: "worldpol" }}, texas: {{ austin: "austin", state: "texas" }}, tech: {{ ai: "ai", gear: "tech" }}, science: {{ sci: "science", health: "health" }} }};
+const SUBVIEWS = ["us", "world", "austin", "state", "ai", "gear", "sci", "health"];
 try {{ Object.assign(st, JSON.parse(localStorage.getItem("newsState") || "{{}}")); }} catch (e) {{}}
 const tabs = [...document.querySelectorAll(".tabs button")];
 if (st.tab === "markets" || st.tab === "radar") {{ st.view = st.tab; st.tab = "finance"; }}  // these used to be tabs
