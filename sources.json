@@ -190,6 +190,116 @@
       "name": "The Dispatch",
       "section": "Politics",
       "url": "https://thedispatch.com/feed/"
+    },
+    {
+      "name": "Politico Europe",
+      "section": "WorldPol",
+      "url": "https://www.politico.eu/feed/"
+    },
+    {
+      "name": "Foreign Policy",
+      "section": "WorldPol",
+      "url": "https://foreignpolicy.com/feed/"
+    },
+    {
+      "name": "The Diplomat",
+      "section": "WorldPol",
+      "url": "https://thediplomat.com/feed/"
+    },
+    {
+      "name": "The Africa Report",
+      "section": "WorldPol",
+      "url": "https://www.theafricareport.com/feed/"
+    },
+    {
+      "name": "Kyiv Independent",
+      "section": "WorldPol",
+      "url": "https://kyivindependent.com/news-archive/rss/"
+    },
+    {
+      "name": "Guardian World",
+      "section": "WorldPol",
+      "url": "https://www.theguardian.com/world/rss"
+    },
+    {
+      "name": "FT World",
+      "section": "WorldPol",
+      "url": "https://www.ft.com/world?format=rss"
+    },
+    {
+      "name": "The Economist",
+      "section": "WorldPol",
+      "url": "https://www.economist.com/international/rss.xml"
+    },
+    {
+      "name": "Euronews",
+      "section": "WorldPol",
+      "url": "https://www.euronews.com/rss?level=theme&name=news"
+    },
+    {
+      "name": "Meduza",
+      "section": "WorldPol",
+      "url": "https://meduza.io/rss/en/all"
+    },
+    {
+      "name": "Moscow Times",
+      "section": "WorldPol",
+      "url": "https://www.themoscowtimes.com/rss/news"
+    },
+    {
+      "name": "Times of Israel",
+      "section": "WorldPol",
+      "url": "https://www.timesofisrael.com/feed/"
+    },
+    {
+      "name": "Haaretz",
+      "section": "WorldPol",
+      "url": "https://www.haaretz.com/srv/haaretz-latest-headlines"
+    },
+    {
+      "name": "Arab News",
+      "section": "WorldPol",
+      "url": "https://www.arabnews.com/rss.xml"
+    },
+    {
+      "name": "Middle East Eye",
+      "section": "WorldPol",
+      "url": "https://www.middleeasteye.net/rss.xml"
+    },
+    {
+      "name": "Nikkei Asia",
+      "section": "WorldPol",
+      "url": "https://asia.nikkei.com/rss/feed/nar"
+    },
+    {
+      "name": "CNA",
+      "section": "WorldPol",
+      "url": "https://www.channelnewsasia.com/api/v1/rss-outbound-feed?_format=xml&category=6511"
+    },
+    {
+      "name": "Yonhap",
+      "section": "WorldPol",
+      "url": "https://en.yna.co.kr/RSS/news.xml"
+    },
+    {
+      "name": "The Hindu",
+      "section": "WorldPol",
+      "url": "https://www.thehindu.com/news/national/feeder/default.rss"
+    },
+    {
+      "name": "Hindustan Times",
+      "section": "WorldPol",
+      "url": "https://www.hindustantimes.com/feeds/rss/india-news/rssfeed.xml"
+    },
+    {
+      "name": "AllAfrica",
+      "section": "WorldPol",
+      "url": "https://allafrica.com/tools/headlines/rdf/latest/headlines.rdf"
+    },
+    {
+      "name": "MercoPress",
+      "section": "WorldPol",
+      "url": "https://en.mercopress.com/rss/"
     }
   ],
   "google_news": [
@@ -272,6 +382,11 @@
       "name": "Washington Examiner GN",
       "section": "Politics",
       "q": "site:washingtonexaminer.com when:1d"
+    },
+    {
+      "name": "Americas Quarterly",
+      "section": "WorldPol",
+      "q": "site:americasquarterly.org when:2d"
     }
   ]
 }

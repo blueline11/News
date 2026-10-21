@@ -34,7 +34,7 @@ from markets import BOARD_CSS  # noqa: E402
 # how-to-refresh line under the title; the web copy sets its own
 HINT = os.environ.get("NEWS_HINT", "Updates by itself every 30 minutes.")
 CAP = 20
-TABS = ["Finance", "Markets", "Radar", "Top", "World", "US", "Politics", "Texas", "Tech", "Science", "Turkiye", "Culture", "Sports"]
+TABS = ["Finance", "Markets", "Radar", "Top", "World", "WorldPol", "US", "Politics", "Texas", "Tech", "Science", "Turkiye", "Culture", "Sports"]
 
 # Finance tab sub-groups, matched on the headline in this order; the last one takes the rest
 FIN_GROUPS = [
@@ -53,7 +53,7 @@ FIN_GROUPS = [
 MARKET_PULL = re.compile(r"\b(oil|crude|brent|opec|hormuz|tariffs?|sanctions?|trade (deal|war|talks)|"
                          r"fed|federal reserve|central bank|bond yields?|treasury yields?|"
                          r"export (ban|controls?)|stock markets?|wall st(reet)?)\b", re.I)
-TITLES = {"Top": "Top stories", "Texas": "Texas & Austin", "Tech": "Tech", "Science": "Science & Health",
+TITLES = {"Top": "Top stories", "WorldPol": "World Politics", "Texas": "Texas & Austin", "Tech": "Tech", "Science": "Science & Health",
           "Turkiye": "Türkiye"}
 
 # headlines that are never news
@@ -120,6 +120,19 @@ POL = re.compile(
     r"government shutdown|appropriations|redistricting|gerrymander\w*|electoral|election day|"
     r"early voting|voter (id|rolls|intimidation)|mail-in|ballots?|polls? (show|find)|approval rating|"
     r"executive order|pardons?|veto)\b", re.I)
+# politics outside the US: governments, elections, diplomacy, protests (wars/disasters stay in World)
+WPOL = re.compile(
+    r"\b(elections?|electoral|votes?|voted|voting|voters|referendum|parliament\w*|lawmakers?|legislat\w*|"
+    r"prime minister|premier|president|presidential|chancellor|ministers?|ministry|government|cabinet|"
+    r"coalition|opposition|ruling party|party leader|far-right|far right|populist|"
+    r"diplomat\w*|diplomacy|summit|talks|treaty|accord|sanctions?|envoy|ambassador|foreign policy|"
+    r"nato|european union|eu|brussels|security council|united nations|g7|g20|brics|asean|african union|"
+    r"coup|junta|regime|protests?|protesters|demonstrat\w*|crackdown|dissidents?|political|politics|"
+    r"politicians?|constitution\w*|impeach\w*|resign\w*|sworn in|inaugurat\w*|kremlin|downing street|"
+    r"knesset|bundestag|duma|ceasefire|peace (talks|deal|plan|process)|annex\w*|sovereignty)\b", re.I)
+# World Politics outlets that cover only politics; the rest are filtered with WPOL
+WP_DESKS = {"Politico Europe", "Foreign Policy", "The Diplomat", "The Africa Report", "Kyiv Independent",
+            "Americas Quarterly"}
 # outlets whose feed is all topics: keep only their US politics
 POLITICS_ONLY = {"Axios", "Semafor", "Washington Examiner", "Washington Examiner GN", "The Dispatch"}
 # Anadolu also covers world news; keep only its Turkey stories
@@ -136,6 +149,10 @@ def resection(it, t):
         return None
     if it["source"] == "Bloomberg" and BIZ.search(t):
         return "Finance"
+    if sec == "WorldPol":
+        if it["source"] in WP_DESKS or WPOL.search(t):
+            return "Politics" if US_DOM.search(t) and POL.search(t) else "WorldPol"
+        return None
     if it["source"] in POLITICS_ONLY:
         return "Politics" if POL.search(t) else None
     if it["source"] == "AP Politics" and not POL.search(t):
@@ -149,6 +166,8 @@ def resection(it, t):
             sec = "US"
         if sec == "US" and POL.search(t):
             return "Politics"
+        if sec == "World" and WPOL.search(t):
+            return "WorldPol"
     return "Finance" if sec == "Economy" else sec
 
 
@@ -199,7 +218,7 @@ def label(it):
     for brand in ("CNBC", "MarketWatch"):
         if s.startswith(brand):
             return brand
-    names = {"NYT Politics": "NYT", "LA Times Politics": "LA Times", "Fox News Politics": "Fox News",
+    names = {"Guardian World": "Guardian", "FT World": "FT", "NYT Politics": "NYT", "LA Times Politics": "LA Times", "Fox News Politics": "Fox News",
              "WSJ Politics": "WSJ", "Washington Examiner GN": "Washington Examiner",
              "Washington Post": "Washington Post", "Punchbowl News": "Punchbowl", "USA Today": "USA Today"}
     if s in names:

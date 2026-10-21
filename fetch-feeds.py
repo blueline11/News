@@ -12,6 +12,7 @@ import os
 import re
 import subprocess
 import sys
+import urllib.error
 import urllib.request
 import urllib.parse
 import xml.etree.ElementTree as ET
@@ -39,8 +40,13 @@ def fetch(url):
         "Accept": "application/rss+xml, application/atom+xml, application/xml, text/xml, */*",
         "Accept-Language": "en,en-US;q=0.9",
     })
-    with urllib.request.urlopen(req, timeout=30) as r:
-        data = r.read()
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            data = r.read()
+    except urllib.error.HTTPError as e:
+        if e.code not in (401, 403, 429):
+            raise
+        data = b""  # blocked for Python (Arab News): retry with curl below
     if data.strip():
         return data
     # some sites (PBS, ESPN) answer Python with an empty 202; Windows' curl gets through
