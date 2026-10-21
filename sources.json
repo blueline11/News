@@ -140,6 +140,11 @@
       "name": "Variety",
       "section": "Culture",
       "url": "https://variety.com/feed/"
+    },
+    {
+      "name": "IBD",
+      "section": "Finance",
+      "url": "https://www.investors.com/feed/"
     }
   ],
   "google_news": [
