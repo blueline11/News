@@ -34,7 +34,7 @@ from markets import BOARD_CSS  # noqa: E402
 # how-to-refresh line under the title; the web copy sets its own
 HINT = os.environ.get("NEWS_HINT", "Updates by itself every 30 minutes.")
 CAP = 20
-TABS = ["Finance", "Markets", "Radar", "Top", "World", "WorldPol", "US", "Politics", "Texas", "Tech", "Science", "Turkiye", "Culture", "Sports"]
+TABS = ["Finance", "Top", "World", "US", "Politics", "WorldPol", "Texas", "Tech", "Science", "Turkiye", "Culture", "Sports"]
 
 # Finance tab sub-groups, matched on the headline in this order; the last one takes the rest
 FIN_GROUPS = [
@@ -334,9 +334,6 @@ def main():
     for sec in TABS:
         sid = sec.lower()
         name = TITLES.get(sec, sec)
-        if sec in ("Markets", "Radar"):
-            tabbar.append(f'<button data-tab="{sid}">{sec}</button>')
-            continue
         if sec == "Top":
             cs = top
             inner = ['<p class="muted lede">Stories carried by 3 or more outlets.</p>']
@@ -357,7 +354,8 @@ def main():
         if not cs:
             continue
         total += len(cs) if sec != "Top" else 0
-        tabbar.append(f'<button data-tab="{sid}">{escape(name)}</button>')
+        if sec != "WorldPol":  # shown inside the Politics tab
+            tabbar.append(f'<button data-tab="{sid}">{escape(name)}</button>')
         panels.append(f'<section class="panel" data-tab="{sid}" hidden>' + "\n".join(inner) + "</section>")
 
     # "Latest first" view: every story in one timeline, hour headings; filtered by tab in JS
@@ -476,7 +474,8 @@ footer {{ margin-top:36px; color:var(--muted); font:13px/1.5 "Source Sans 3", sy
 <div class="sub">{when} · {total} stories (from {raw} items, last {hours}h) · no AI, auto-built<br>{hint}</div></header>
 <div class="bar">
   <div class="tabs">{tabbar}</div>
-  <div class="views"><button data-view="topic">By topic</button><button data-view="latest">Latest first</button></div>
+  <div class="views stdviews"><button data-view="topic">By topic</button><button data-view="latest">Latest first</button><button data-view="markets" class="finonly">Markets</button><button data-view="radar" class="finonly">Radar</button></div>
+  <div class="views polviews"><button data-view="us">US</button><button data-view="world">World</button><button data-view="latest">Latest first</button></div>
 </div>
 <div id="strip" hidden>{strip}</div>
 <div id="board" class="boardcard" hidden>{board}</div>
@@ -495,30 +494,43 @@ Feeds that failed: {failed}.</footer>
 const st = {{ tab: "finance", view: "topic" }};
 try {{ Object.assign(st, JSON.parse(localStorage.getItem("newsState") || "{{}}")); }} catch (e) {{}}
 const tabs = [...document.querySelectorAll(".tabs button")];
+if (st.tab === "markets" || st.tab === "radar") {{ st.view = st.tab; st.tab = "finance"; }}  // these used to be tabs
 if (!tabs.some(b => b.dataset.tab === st.tab)) st.tab = tabs[0].dataset.tab;
 function render() {{
   tabs.forEach(b => b.classList.toggle("on", b.dataset.tab === st.tab));
+  const pol = st.tab === "politics";
+  if (st.tab === "worldpol") {{ st.tab = "politics"; st.view = "world"; }}  // used to be a tab
+  if (pol && !["us", "world", "latest"].includes(st.view)) st.view = "us";
+  if (!pol && (st.view === "us" || st.view === "world")) st.view = "topic";
+  document.querySelector(".stdviews").style.display = pol ? "none" : "";
+  document.querySelector(".polviews").style.display = pol ? "" : "none";
   document.querySelectorAll(".views button").forEach(b => b.classList.toggle("on", b.dataset.view === st.view));
-  const mk = st.tab === "markets" || st.tab === "radar";  // tabs with their own fixed layout
-  document.getElementById("strip").hidden = st.tab !== "finance";
-  document.getElementById("board").hidden = st.tab !== "markets";
-  document.getElementById("radar").hidden = st.tab !== "radar";
-  document.querySelector(".views").style.display = mk ? "none" : "";
-  document.getElementById("v-topic").hidden = mk || st.view !== "topic";
+  const fin = st.tab === "finance";
+  if (!fin && (st.view === "markets" || st.view === "radar")) st.view = "topic";
+  const board = fin && st.view === "markets", rad = fin && st.view === "radar";
+  const mk = board || rad;  // Finance views with their own layout
+  document.querySelectorAll(".finonly").forEach(b => b.hidden = !fin);
+  document.getElementById("strip").hidden = !fin || mk;
+  document.getElementById("board").hidden = !board;
+  document.getElementById("radar").hidden = !rad;
+  const listView = st.view === "topic" || st.view === "us" || st.view === "world";
+  document.getElementById("v-topic").hidden = mk || !listView;
   document.getElementById("v-latest").hidden = mk || st.view !== "latest";
-  document.querySelectorAll(".panel").forEach(p => p.hidden = p.dataset.tab !== st.tab);
+  const panel = pol ? (st.view === "world" ? "worldpol" : "politics") : st.tab;
+  document.querySelectorAll(".panel").forEach(p => p.hidden = p.dataset.tab !== panel);
   if (st.view === "latest") {{
     let head = null, any = false;
     const close = () => {{ if (head) head.hidden = !any; }};
     for (const el of document.getElementById("v-latest").children) {{
       if (el.tagName === "H4") {{ close(); head = el; any = false; continue; }}
-      const show = el.dataset.tabs.split(" ").includes(st.tab);
+      const own = el.dataset.tabs.split(" ");
+      const show = pol ? (own.includes("politics") || own.includes("worldpol")) : own.includes(st.tab);
       el.hidden = !show; any = any || show;
     }}
     close();
   }}
   // format A / B: alternate among the cards actually on screen, per block
-  const root = st.tab === "radar" ? [document.getElementById("radar")]
+  const root = rad ? [document.getElementById("radar")]
              : st.view === "latest" ? [document.getElementById("v-latest")]
              : [...document.querySelectorAll(".panel")].filter(p => !p.hidden);
   root.forEach(r => {{
@@ -541,7 +553,7 @@ function ago() {{
 }}
 ago(); setInterval(ago, 60000);
 tabs.forEach(b => b.onclick = () => {{ st.tab = b.dataset.tab; render(); window.scrollTo(0, 0); }});
-document.querySelectorAll("[data-goto]").forEach(b => b.onclick = () => {{ st.tab = b.dataset.goto; render(); window.scrollTo(0, 0); }});
+document.querySelectorAll("[data-goto]").forEach(b => b.onclick = () => {{ st.tab = "finance"; st.view = "markets"; render(); window.scrollTo(0, 0); }});
 document.querySelectorAll(".views button").forEach(b => b.onclick = () => {{ st.view = b.dataset.view; render(); }});
 render();
 </script>
