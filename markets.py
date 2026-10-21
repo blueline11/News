@@ -154,7 +154,7 @@ def board_html():
 
 BOARD_CSS = """
 .board { margin-top:6px; }
-table.mk { width:100%; border-collapse:collapse; table-layout:fixed; font:14px system-ui, sans-serif; }
+table.mk { width:100%; border-collapse:collapse; table-layout:fixed; font:14px "Source Sans 3", system-ui, sans-serif; }
 col.c-px { width:84px; } col.c-ch { width:72px; } col.c-sp { width:92px; }
 table.mk th { text-align:right; font-weight:500; color:var(--muted); font-size:12px; padding:4px 6px; }
 table.mk td { padding:5px 6px; border-bottom:1px solid var(--line); text-align:right; white-space:nowrap; }
@@ -169,10 +169,10 @@ svg.spark polyline { fill:none; stroke-width:1.5; stroke:currentColor; }
 .strip { display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; padding:12px 0 4px; }
 .strip::-webkit-scrollbar { display:none; }
 .tile { flex:none; display:flex; flex-direction:column; min-width:86px; padding:8px 10px;
-  background:var(--card); border-radius:10px; box-shadow:var(--shadow); font:13px system-ui, sans-serif; }
+  background:var(--card); border-radius:10px; box-shadow:var(--shadow); font:13px "Source Sans 3", system-ui, sans-serif; }
 .tl { color:var(--muted); font-size:12px; } .tp { font-weight:700; font-size:15px; font-variant-numeric:tabular-nums; }
 .tc { font-size:12.5px; font-weight:600; font-variant-numeric:tabular-nums; }
-.more { flex:none; align-self:center; font:600 13px system-ui, sans-serif; color:var(--link); background:none;
+.more { flex:none; align-self:center; font:600 13px "Source Sans 3", system-ui, sans-serif; color:var(--link); background:none;
   border:1px dashed var(--line); border-radius:10px; padding:16px 12px; cursor:pointer; }
 @media (max-width:520px) { .wk { display:none; } col.c-px { width:60px; } col.c-ch { width:52px; }
   col.c-sp { width:46px; } svg.spark { width:44px !important; } td.sp { width:60px; } svg.spark { width:56px; }

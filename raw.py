@@ -348,7 +348,7 @@ TEMPLATE = """<!doctype html>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root {{ --bg:#faf8f4; --fg:#1f1d1a; --muted:#6b665e; --line:#e4dfd6; --accent:#2d5a5a;
   --badge:#e2ece9; --link:#2d5a8a; --up:#1d7a3e; --dn:#b3261e;
@@ -362,48 +362,48 @@ TEMPLATE = """<!doctype html>
   --card:#211f25; --card-b:#1c2726; --cardline:#3a3740; --cardline-b:#2f4a46; --edge:#8cc7c0; --edge-b:#e0a56f; --shadow:none; }}
 * {{ box-sizing:border-box; }}
 body {{ margin:0; background:var(--bg); color:var(--fg);
-  font:17px/1.55 "Nunito Sans", system-ui, -apple-system, "Segoe UI", sans-serif; }}
+  font:17px/1.55 "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif; }}
 .wrap {{ max-width:760px; margin:0 auto; padding:0 16px 80px; }}
 header {{ padding:28px 0 8px; }}
-h1 {{ margin:0; font-size:30px; font-weight:800; letter-spacing:-.01em; }}
-.sub {{ color:var(--muted); font:14px "Nunito Sans", system-ui, sans-serif; margin-top:4px; }}
+h1 {{ margin:0; font:700 32px "Source Serif 4", Georgia, serif; letter-spacing:-.01em; }}
+.sub {{ color:var(--muted); font:14px "Source Sans 3", system-ui, sans-serif; margin-top:4px; }}
 .bar {{ position:sticky; top:0; z-index:3; background:var(--bg); border-bottom:1px solid var(--line);
   padding:8px 0; }}
-.tabs {{ display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; font:14px "Nunito Sans", system-ui, sans-serif; }}
+.tabs {{ display:flex; gap:6px; overflow-x:auto; scrollbar-width:none; font:14px "Source Sans 3", system-ui, sans-serif; }}
 .tabs::-webkit-scrollbar {{ display:none; }}
 .tabs button {{ flex:none; font:inherit; padding:6px 12px; border-radius:16px; cursor:pointer;
   border:1px solid var(--line); background:transparent; color:var(--muted); }}
 .tabs button.on {{ background:var(--accent); border-color:var(--accent); color:var(--bg); }}
-.views {{ display:flex; gap:14px; margin-top:8px; font:13px "Nunito Sans", system-ui, sans-serif; }}
+.views {{ display:flex; gap:14px; margin-top:8px; font:13px "Source Sans 3", system-ui, sans-serif; }}
 .views button {{ font:inherit; border:0; background:none; padding:2px 0; cursor:pointer; color:var(--muted);
   border-bottom:2px solid transparent; }}
 .views button.on {{ color:var(--fg); border-bottom-color:var(--accent); }}
 .panel {{ padding-top:10px; }}
-h3.fgroup {{ font:600 15px "Nunito Sans", system-ui, sans-serif; color:var(--accent); margin:26px 0 0;
+h3.fgroup {{ font:600 15px "Source Sans 3", system-ui, sans-serif; color:var(--accent); margin:26px 0 0;
   padding-bottom:4px; border-bottom:2px solid var(--accent); }}
-h4.group {{ font:600 13px "Nunito Sans", system-ui, sans-serif; text-transform:uppercase; letter-spacing:.06em;
+h4.group {{ font:600 13px "Source Sans 3", system-ui, sans-serif; text-transform:uppercase; letter-spacing:.06em;
   color:var(--muted); margin:18px 0 2px; }}
-.count {{ font:13px "Nunito Sans", system-ui, sans-serif; color:var(--muted); margin-left:10px; font-weight:400; }}
-.lede {{ font:14px "Nunito Sans", system-ui, sans-serif; margin:10px 0 0; }}
+.count {{ font:13px "Source Sans 3", system-ui, sans-serif; color:var(--muted); margin-left:10px; font-weight:400; }}
+.lede {{ font:14px "Source Sans 3", system-ui, sans-serif; margin:10px 0 0; }}
 .story {{ background:var(--card); border:1px solid var(--cardline); border-radius:6px;
   padding:14px 16px 12px; margin:10px 0; }}
 .story.alt {{ background:var(--card-b); border-color:var(--cardline-b); }}
-.story h3 {{ font-size:18px; font-weight:700; margin:0 0 4px; line-height:1.3; }}
-.story p {{ margin:0 0 8px; font-size:15.5px; color:var(--fg); opacity:.85; }}
+.story h3 {{ font:700 19px/1.3 "Source Serif 4", Georgia, serif; margin:0 0 4px; }}
+.story p {{ margin:0 0 8px; font-size:16px; color:var(--fg); opacity:.85; }}
 .src {{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }}
-.src a {{ font:600 12px "Nunito Sans", system-ui, sans-serif; color:var(--link); text-decoration:none;
+.src a {{ font:600 12px "Source Sans 3", system-ui, sans-serif; color:var(--link); text-decoration:none;
   border:1px solid var(--line); border-radius:999px; padding:2px 10px; background:var(--bg); }}
 .src a:hover {{ border-color:var(--link); }}
-.meta {{ font:13px "Nunito Sans", system-ui, sans-serif; color:var(--muted); display:flex; flex-wrap:wrap; gap:4px 12px; align-items:center; }}
+.meta {{ font:13px "Source Sans 3", system-ui, sans-serif; color:var(--muted); display:flex; flex-wrap:wrap; gap:4px 12px; align-items:center; }}
 time {{ color:var(--muted); }}
 .n, .sec {{ background:var(--badge); color:var(--accent); padding:1px 8px; border-radius:999px; font-weight:700; font-size:11px; }}
-h4.hour {{ font:600 13px "Nunito Sans", system-ui, sans-serif; text-transform:uppercase; letter-spacing:.06em;
+h4.hour {{ font:600 13px "Source Sans 3", system-ui, sans-serif; text-transform:uppercase; letter-spacing:.06em;
   color:var(--accent); margin:22px 0 0; padding-bottom:4px; border-bottom:1px solid var(--line); }}
 details {{ margin-top:8px; }}
-summary {{ cursor:pointer; color:var(--link); font:14px "Nunito Sans", system-ui, sans-serif; padding:10px 0; }}
+summary {{ cursor:pointer; color:var(--link); font:14px "Source Sans 3", system-ui, sans-serif; padding:10px 0; }}
 .boardcard {{ background:var(--card); border-radius:12px; padding:4px 14px 10px; margin-top:14px;
   box-shadow:var(--shadow); }}
-footer {{ margin-top:36px; color:var(--muted); font:13px/1.5 "Nunito Sans", system-ui, sans-serif; }}
+footer {{ margin-top:36px; color:var(--muted); font:13px/1.5 "Source Sans 3", system-ui, sans-serif; }}
 {board_css}
 </style>
 </head>
