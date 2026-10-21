@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Radar tab: a price row and the latest news for each symbol in radar.txt.
+"""Radar tab: the latest news for each symbol in radar.txt.
 
 News comes from Yahoo Finance's per-symbol headline feeds (covers small caps and their
-press releases); prices from the same chart endpoint as the market board.
+press releases); company names (used to check relevance) from the same chart endpoint as the market board.
 """
 import json
 import os
@@ -107,14 +107,6 @@ def build(fmt, CT):
 
     items.sort(key=lambda n: n["time"], reverse=True)
     out = []
-    if rows:
-        rows.sort(key=lambda r: -r[0])
-        out.append('<div class="boardcard"><div class="board"><h4 class="group">Today'
-                   '<span class="muted"> · sorted by today</span></h4><table class="mk">'
-                   '<colgroup><col><col class="c-px"><col class="c-ch"><col class="c-ch"><col class="c-sp"></colgroup>'
-                   '<tr><th></th><th>Price</th><th>Day</th><th>Month</th><th></th></tr>')
-        out += [r for _, r in rows]
-        out.append("</table></div></div>")
     out.append(f'<h3 class="fgroup">Latest news<span class="count">{len(items)} · last {DAYS} days</span></h3>')
     for n in items:
         d = n["time"].astimezone(CT)
