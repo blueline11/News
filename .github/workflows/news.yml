@@ -31,7 +31,7 @@ jobs:
         run: |
           mkdir -p public
           python raw.py
-          cp icon.png public/
+          cp icon.png favicon.ico favicon-32.png public/
         env:
           NEWS_OUT: public/index.html
           NEWS_HINT: "Updates by itself every 30 minutes."
