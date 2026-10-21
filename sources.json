@@ -102,34 +102,44 @@
       "url": "https://www.cnbc.com/id/100003114/device/rss/rss.html"
     },
     {
-      "name": "CNBC Economy",
-      "section": "Finance",
-      "url": "https://www.cnbc.com/id/20910258/device/rss/rss.html"
-    },
-    {
-      "name": "CNBC Markets",
-      "section": "Finance",
-      "url": "https://www.cnbc.com/id/10000664/device/rss/rss.html"
-    },
-    {
       "name": "MarketWatch",
       "section": "Finance",
       "url": "https://feeds.content.dowjones.io/public/rss/mw_topstories"
     },
     {
-      "name": "MarketWatch Pulse",
-      "section": "Finance",
-      "url": "https://feeds.content.dowjones.io/public/rss/mw_marketpulse"
-    },
-    {
-      "name": "WSJ Markets",
-      "section": "Finance",
-      "url": "https://feeds.a.dj.com/rss/RSSMarketsMain.xml"
-    },
-    {
       "name": "Federal Reserve",
       "section": "Finance",
       "url": "https://www.federalreserve.gov/feeds/press_all.xml"
+    },
+    {
+      "name": "Hurriyet Daily News",
+      "section": "Turkiye",
+      "url": "https://www.hurriyetdailynews.com/rss/turkey"
+    },
+    {
+      "name": "bianet",
+      "section": "Turkiye",
+      "url": "https://bianet.org/english/rss"
+    },
+    {
+      "name": "NASA",
+      "section": "Science",
+      "url": "https://www.nasa.gov/news-release/feed/"
+    },
+    {
+      "name": "STAT News",
+      "section": "Science",
+      "url": "https://www.statnews.com/feed/"
+    },
+    {
+      "name": "NPR Arts",
+      "section": "Culture",
+      "url": "https://feeds.npr.org/1008/rss.xml"
+    },
+    {
+      "name": "Variety",
+      "section": "Culture",
+      "url": "https://variety.com/feed/"
     }
   ],
   "google_news": [
@@ -164,14 +174,9 @@
       "q": "site:kxan.com OR site:kvue.com OR site:kut.org OR site:statesman.com when:1d"
     },
     {
-      "name": "AP Health",
-      "section": "Science",
-      "q": "site:apnews.com health when:1d"
-    },
-    {
-      "name": "AP Entertainment",
-      "section": "Culture",
-      "q": "site:apnews.com entertainment when:1d"
+      "name": "Anadolu",
+      "section": "Turkiye",
+      "q": "site:aa.com.tr/en (Türkiye OR Turkish OR Turkey OR Erdogan OR Ankara OR Istanbul) when:1d"
     }
   ]
 }

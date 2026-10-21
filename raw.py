@@ -63,7 +63,8 @@ JUNK = re.compile(
     r"gossip|ratings$|team of the week|photo highlights|\.jpg|announces?|introduces|"
     r"launches online|co-marketing|partnership to advance|world's smallest|"
     r"the afp top 10|afp recognizes|^watch:|all the goals|best plays|morning news brief|"
-    r"morning bid|commentary:|press review", re.I)
+    r"morning bid|commentary:|press review|enforcement actions? with|"
+    r"termination of enforcement", re.I)
 
 STOP = set("""a an the of to in on for and or as at by with from after over amid into
 is are was were be been its it his her their this that new says say said will could
@@ -90,6 +91,21 @@ ECON = re.compile(r"\b(shares|stocks?|wall st|nasdaq|ftse|profit|earnings|ipo|fo
                   r"oil prices|brent|bond yields?|fed|central bank|rate (hike|cut)s?|"
                   r"acquire|acquisition|billion deal|layoffs|job cuts|cut jobs|"
                   r"sterling|euro |yen|dollar|gold eases|inflation)\b", re.I)
+US_DOM = re.compile(
+    r"\b(congress\w*|senate|senators?|house (speaker|republicans|democrats|vote)|supreme court|"
+    r"federal (judge|court|appeals court|prosecutors?|agents?|government|workers)|white house|"
+    r"midterms?|democrats?|republicans?|gop|pentagon|fbi|doj|justice department|"
+    r"homeland security|ice (agents?|detention|custody|facility)|border patrol|deportations?|"
+    r"medicaid|medicare|social security|irs|epa|fema|national guard|trump administration|"
+    r"alabama|alaska|arizona|arkansas|california|colorado|connecticut|delaware|florida|hawaii|"
+    r"idaho|illinois|indiana|iowa|kansas|kentucky|louisiana|maine|maryland|massachusetts|"
+    r"michigan|minnesota|mississippi|missouri|montana|nebraska|nevada|new hampshire|new jersey|"
+    r"new mexico|new york|north carolina|north dakota|ohio|oklahoma|oregon|pennsylvania|"
+    r"rhode island|south carolina|south dakota|tennessee|texas|utah|vermont|virginia|"
+    r"west virginia|wisconsin|wyoming|chicago|los angeles|san francisco|philadelphia|boston|"
+    r"seattle|atlanta|miami|detroit|minneapolis|washington,? d\.?c\.?)\b", re.I)
+# Anadolu also covers world news; keep only its Turkey stories
+TR = re.compile(r"(türkiye|turkey|turkish|erdo[gğ]an|ankara|istanbul|izmir)", re.I)
 TX = re.compile(r"\b(texas|austin|travis|abbott|paxton|houston|dallas|san antonio|"
                 r"round rock|cota|longhorns|ut |hays|williamson|txdot|ercot)\b", re.I)
 
@@ -98,11 +114,15 @@ def resection(it, t):
     sec = it["section"]
     if it["source"] == "Austin local" and not TX.search(t):
         return None  # wire copy republished by a local site; it is covered elsewhere
+    if it["source"] == "Anadolu" and not TR.search(t):
+        return None
     if sec in ("World", "US"):
         if SPORT.search(t):
             return "Sports"
         if ECON.search(t):
             return "Finance"
+        if sec == "World" and US_DOM.search(t):
+            return "US"
     return "Finance" if sec == "Economy" else sec
 
 
@@ -113,6 +133,7 @@ def fmt(d, f):
 
 def clean_title(it):
     t = it["title"]
+    t = re.sub(r"^STAT\+:\s*", "", t)  # STAT's paywall marker
     if it["outlet"]:  # Google News appends " - Outlet"
         t = re.sub(r"\s+-\s+[^-]+$", "", t)
     return t.strip()
@@ -146,7 +167,8 @@ def label(it):
     for brand in ("CNBC", "MarketWatch"):
         if s.startswith(brand):
             return brand
-    return {"SCMP Asia": "SCMP", "WSJ Markets": "WSJ", "Federal Reserve": "Fed"}.get(s, s)
+    return {"SCMP Asia": "SCMP", "Federal Reserve": "Fed", "Hurriyet Daily News": "Hürriyet DN",
+            "Anadolu": "Anadolu (AA)"}.get(s, s)
 
 
 def main():
