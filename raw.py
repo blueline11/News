@@ -34,7 +34,7 @@ from markets import BOARD_CSS  # noqa: E402
 # how-to-refresh line under the title; the web copy sets its own
 HINT = os.environ.get("NEWS_HINT", "Updates by itself every 30 minutes.")
 CAP = 20
-TABS = ["Finance", "Top", "World", "US", "Politics", "WorldPol", "Texas", "Austin", "Tech", "AI", "Science", "Health", "Turkiye", "TurkiyeTR", "Culture", "Music", "Arts", "Sports"]
+TABS = ["Finance", "Top", "World", "US", "Politics", "WorldPol", "Texas", "Austin", "Tech", "AI", "Science", "Health", "Turkiye", "TurkiyeTR", "Culture", "Music", "Arts", "Sports", "Soccer", "SportsTX", "SportsTR"]
 
 # Finance tab sub-groups, matched on the headline in this order; the last one takes the rest
 FIN_GROUPS = [
@@ -53,7 +53,7 @@ FIN_GROUPS = [
 MARKET_PULL = re.compile(r"\b(oil|crude|brent|opec|hormuz|tariffs?|sanctions?|trade (deal|war|talks)|"
                          r"fed|federal reserve|central bank|bond yields?|treasury yields?|"
                          r"export (ban|controls?)|stock markets?|wall st(reet)?)\b", re.I)
-TITLES = {"Top": "Top stories", "Music": "Music", "Arts": "Books & Arts", "TurkiyeTR": "Türkçe", "Health": "Health", "AI": "AI", "Austin": "Austin", "WorldPol": "World Politics", "Texas": "Texas & Austin", "Tech": "Tech", "Science": "Science & Health",
+TITLES = {"Top": "Top stories", "Soccer": "Soccer", "SportsTX": "Texas", "SportsTR": "Türk Sporu", "Music": "Music", "Arts": "Books & Arts", "TurkiyeTR": "Türkçe", "Health": "Health", "AI": "AI", "Austin": "Austin", "WorldPol": "World Politics", "Texas": "Texas & Austin", "Tech": "Tech", "Science": "Science & Health",
           "Turkiye": "Türkiye"}
 
 # headlines that are never news
@@ -171,13 +171,39 @@ SCI = re.compile(
     r"galax(y|ies)|black holes?|climate change|global warming|el ni[nñ]o|la ni[nñ]a|physics|genomes?|"
     r"dna|archaeolog\w*|extinct\w*|emissions|carbon dioxide|coral reefs?|glaciers?)\b", re.I)
 # high-volume feeds: newest N each
-SOURCE_CAPS = {"Phys.org": 15, "Medical Xpress": 15, "Nature": 10}
+SOURCE_CAPS = {"Phys.org": 15, "Medical Xpress": 15, "Nature": 10, "AP Sports": 25, "The Athletic": 30,
+               "BBC Football": 25, "Houston Chronicle Sports": 20, "A Spor": 20, "Yahoo Sports": 30}
 # Turkish-language outlets: sport, celebrity and lifestyle pages are not news here
-TR_SKIP = re.compile(
+TR_SPORT = re.compile(
     r"(\bspor\b|maç|galatasaray|fenerbahçe|beşiktaş|trabzonspor|süper lig|futbol|basketbol|voleybol|"
-    r"teknik direktör|transfer|burç|magazin|ünlü|dizi|reyting|tarif|hava durumu|altın fiyatları|"
+    r"teknik direktör|transfer|milli takım|şampiyonlar ligi|avrupa ligi|gol\b|hakem)", re.I)
+TR_SKIP = re.compile(
+    r"(burç|magazin|ünlü|dizi|reyting|tarif|hava durumu|altın fiyatları|"
     r"döviz kuru|canlı izle|kaç tl|ne zaman|nedir\?)", re.I)
 TR_CAP = 15
+# sports sub-views. Texas teams first: "Spurs" is San Antonio's before it is Tottenham's
+TX_TEAMS = re.compile(
+    r"\b(texas|longhorns|aggies|texas a&m|cowboys|texans|astros|texas rangers|mavericks|mavs|"
+    r"san antonio spurs|wembanyama|rockets|dallas stars|austin fc|fc dallas|houston dynamo|"
+    r"red raiders|texas tech|baylor|tcu|horned frogs|utsa|sarkisian|arch manning)\b", re.I)
+SOCCER = re.compile(
+    r"\b(soccer|premier league|champions league|europa league|conference league|la liga|serie a|"
+    r"bundesliga|ligue 1|mls|fifa|uefa|world cup|fa cup|arsenal|chelsea|liverpool|man (utd|united|city)|"
+    r"manchester (united|city)|tottenham|newcastle|aston villa|everton|real madrid|barcelona|atletico|"
+    r"bayern|dortmund|psg|paris saint-germain|juventus|inter milan|ac milan|napoli|ronaldo|messi|"
+    r"mbapp\w*|haaland|lionesses|usmnt|uswnt|galatasaray|fenerbah\w*|be\w*ikta\w*|ballon d'or|goalkeeper|"
+    r"striker|midfielder|penalty shootout)\b", re.I)
+SOCCER_SRC = {"BBC Football", "Guardian Football"}
+
+
+def sports_view(it, t):
+    if TX_TEAMS.search(t):
+        return "SportsTX"
+    if it["source"] in SOCCER_SRC or SOCCER.search(t):
+        return "Soccer"
+    return "Sports"
+
+
 # culture: film & TV / music / books & arts
 FILM = re.compile(
     r"\b(films?|movies?|box office|hollywood|oscars?|emmys?|golden globes?|cannes|sundance|tv series|"
@@ -207,8 +233,12 @@ def resection(it, t):
     sec = it["section"]
     if it["source"] in ("Austin local", "KXAN", "KVUE") and not (TX.search(t) or AUSTIN.search(t)):
         return None  # wire copy republished by a local site; it is covered elsewhere
+    if sec == "SportsTR":
+        return None if TR_SKIP.search(t) else "SportsTR"
     if sec == "TurkiyeTR":
-        return None if TR_SKIP.search(t) else "TurkiyeTR"
+        if TR_SKIP.search(t):  # live-stream pages, horoscopes, prices: not news
+            return None
+        return "SportsTR" if TR_SPORT.search(t) else "TurkiyeTR"
     if sec == "CultureMix":
         return "Music" if MUSIC.search(t) else "Arts" if ARTS.search(t) and not FILM.search(t) else "Culture"
     if sec == "Tech":
@@ -331,7 +361,9 @@ NAMES = {
     "Guardian World": "Guardian", "FT World": "FT", "SCMP Asia": "SCMP", "Federal Reserve": "Fed",
     "Hurriyet Daily News": "Hürriyet DN", "Anadolu": "Anadolu (AA)",
     "NYT Science": "NYT", "NYT Health": "NYT", "Carbon Brief": "Carbon Brief", "WHO": "WHO",
-    "CIDRAP": "CIDRAP", "NYT Books": "NYT", "NYT Arts": "NYT", "Guardian Culture": "Guardian", "BBC Türkçe": "BBC Türkçe", "TRT World": "TRT World", "T24": "T24", "AA Türkçe": "AA",
+    "CIDRAP": "CIDRAP", "BBC Football": "BBC Sport", "Guardian Football": "Guardian",
+    "Dallas Morning News Sports": "Dallas Morning News", "Houston Chronicle Sports": "Houston Chronicle",
+    "Statesman Sports": "Austin American-Statesman", "TRT Spor": "TRT Spor", "NYT Books": "NYT", "NYT Arts": "NYT", "Guardian Culture": "Guardian", "BBC Türkçe": "BBC Türkçe", "TRT World": "TRT World", "T24": "T24", "AA Türkçe": "AA",
     "VentureBeat": "VentureBeat", "Rest of World": "Rest of World", "BleepingComputer": "BleepingComputer", "MIT Technology Review": "MIT Tech Review",
 }
 
@@ -350,11 +382,13 @@ def main():
         sec = resection(it, t)
         if sec is None:
             continue
+        if sec == "Sports":
+            sec = sports_view(it, t)
         it = dict(it, title=t, w=words(t), label=label(it), section=sec)
         if len(it["w"]) < 2:
             continue
         cap = (REGIONAL_CAP if sec == "World" and it["source"] in WP_ALSO_WORLD
-               else TR_CAP if sec == "TurkiyeTR"
+               else TR_CAP if sec in ("TurkiyeTR", "SportsTR") and it["source"] not in SOURCE_CAPS
                else CITY_PAPERS.get(it["source"]) or SOURCE_CAPS.get(it["source"]))
         if cap:  # regional outlets add a voice, not a flood: newest `cap` each
             regional[it["source"]] = regional.get(it["source"], 0) + 1
@@ -472,7 +506,7 @@ def main():
         if not cs:
             continue
         total += len(cs) if sec != "Top" else 0
-        if sec not in ("WorldPol", "Austin", "AI", "Health", "TurkiyeTR", "Music", "Arts"):  # shown inside Politics / Texas / Tech / Science
+        if sec not in ("WorldPol", "Austin", "AI", "Health", "TurkiyeTR", "Music", "Arts", "Soccer", "SportsTX", "SportsTR"):  # shown inside Politics / Texas / Tech / Science
             tabbar.append(f'<button data-tab="{sid}">{escape(name)}</button>')
         panels.append(f'<section class="panel" data-tab="{sid}" hidden>' + "\n".join(inner) + "</section>")
 
@@ -598,6 +632,7 @@ footer {{ margin-top:36px; color:var(--muted); font:13px/1.5 "Source Sans 3", sy
   <div class="views splitviews" data-for="science"><button data-view="sci">Science</button><button data-view="health">Health</button><button data-view="latest">Latest first</button></div>
   <div class="views splitviews" data-for="turkiye"><button data-view="tr">Türkçe</button><button data-view="en">English</button><button data-view="latest">Latest first</button></div>
   <div class="views splitviews" data-for="culture"><button data-view="film">Film &amp; TV</button><button data-view="music">Music</button><button data-view="arts">Books &amp; Arts</button><button data-view="latest">Latest first</button></div>
+  <div class="views splitviews" data-for="sports"><button data-view="sus">US</button><button data-view="soccer">Soccer</button><button data-view="stx">Texas</button><button data-view="str">Türk Sporu</button><button data-view="latest">Latest first</button></div>
   <div class="views splitviews" data-for="texas"><button data-view="austin">Austin</button><button data-view="state">Texas</button><button data-view="latest">Latest first</button></div>
 </div>
 <div id="strip" hidden>{strip}</div>
@@ -616,8 +651,8 @@ Feeds that failed: {failed}.</footer>
 <script>
 const st = {{ tab: "finance", view: "topic" }};
 // tabs split into sub-views: view name -> panel
-const SPLIT = {{ politics: {{ us: "politics", world: "worldpol" }}, texas: {{ austin: "austin", state: "texas" }}, tech: {{ ai: "ai", gear: "tech" }}, science: {{ sci: "science", health: "health" }}, turkiye: {{ tr: "turkiyetr", en: "turkiye" }}, culture: {{ film: "culture", music: "music", arts: "arts" }} }};
-const SUBVIEWS = ["us", "world", "austin", "state", "ai", "gear", "sci", "health", "en", "tr", "film", "music", "arts"];
+const SPLIT = {{ politics: {{ us: "politics", world: "worldpol" }}, texas: {{ austin: "austin", state: "texas" }}, tech: {{ ai: "ai", gear: "tech" }}, science: {{ sci: "science", health: "health" }}, turkiye: {{ tr: "turkiyetr", en: "turkiye" }}, culture: {{ film: "culture", music: "music", arts: "arts" }}, sports: {{ sus: "sports", soccer: "soccer", stx: "sportstx", str: "sportstr" }} }};
+const SUBVIEWS = ["us", "world", "austin", "state", "ai", "gear", "sci", "health", "en", "tr", "film", "music", "arts", "sus", "soccer", "stx", "str"];
 try {{ Object.assign(st, JSON.parse(localStorage.getItem("newsState") || "{{}}")); }} catch (e) {{}}
 const tabs = [...document.querySelectorAll(".tabs button")];
 if (st.tab === "markets" || st.tab === "radar") {{ st.view = st.tab; st.tab = "finance"; }}  // these used to be tabs

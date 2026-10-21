@@ -630,6 +630,31 @@
       "name": "Guardian Culture",
       "section": "CultureMix",
       "url": "https://www.theguardian.com/culture/rss"
+    },
+    {
+      "name": "Yahoo Sports",
+      "section": "Sports",
+      "url": "https://sports.yahoo.com/rss/"
+    },
+    {
+      "name": "The Athletic",
+      "section": "Sports",
+      "url": "https://www.nytimes.com/athletic/rss/news/"
+    },
+    {
+      "name": "BBC Football",
+      "section": "Sports",
+      "url": "https://feeds.bbci.co.uk/sport/football/rss.xml"
+    },
+    {
+      "name": "Guardian Football",
+      "section": "Sports",
+      "url": "https://www.theguardian.com/football/rss"
+    },
+    {
+      "name": "A Spor",
+      "section": "SportsTR",
+      "url": "https://www.aspor.com.tr/rss/anasayfa.xml"
     }
   ],
   "google_news": [
@@ -818,6 +843,32 @@
       "name": "AA Türkçe",
       "section": "TurkiyeTR",
       "q": "site:aa.com.tr/tr when:1d",
+      "lang": "tr"
+    },
+    {
+      "name": "AP Sports",
+      "section": "Sports",
+      "q": "site:apnews.com sports when:1d"
+    },
+    {
+      "name": "Dallas Morning News Sports",
+      "section": "Sports",
+      "q": "site:dallasnews.com/sports when:1d"
+    },
+    {
+      "name": "Houston Chronicle Sports",
+      "section": "Sports",
+      "q": "site:houstonchronicle.com/sports when:1d"
+    },
+    {
+      "name": "Statesman Sports",
+      "section": "Sports",
+      "q": "site:statesman.com/sports when:1d"
+    },
+    {
+      "name": "TRT Spor",
+      "section": "SportsTR",
+      "q": "site:trtspor.com.tr when:1d",
       "lang": "tr"
     }
   ]
