@@ -389,6 +389,8 @@ def main():
         subprocess.run([sys.executable, "-I", os.path.join(BASE, "fetch-feeds.py"), "30"],
                        check=False, stdout=subprocess.DEVNULL)
     snap = json.load(open(os.path.join(BASE, "snapshot.json"), encoding="utf-8"))
+    hl = json.load(open(os.path.join(BASE, "sources.json"), encoding="utf-8")).get("headline_link", {})
+    prefer, paywalled = hl.get("prefer", []), set(hl.get("paywalled", []))
 
     items, regional = [], {}
     for it in snap["items"]:  # newest first
@@ -472,7 +474,16 @@ def main():
         summ = (summ[:260] + "…") if len(summ) > 260 else summ
         p = f"<p>{escape(summ)}</p>" if summ else ""
         tabs = " ".join(sorted(c["tabs"]))
-        return (f'<article class="story" data-tabs="{tabs}"><h3>{escape(lead["title"])}</h3>{p}'
+        # headline opens the story at the biggest free outlet that carried it
+        go = next((it for name in prefer for it in c["items"] if it["label"] == name), None)             or next((it for it in c["items"] if it["label"] not in paywalled), None)
+        h = escape(lead["title"])
+        if go:
+            h = (f'<a href="{escape(go["url"])}" target="_blank" rel="noopener" '
+                 f'title="Read at {escape(go["label"])}">{h}</a>')
+        pics = [i.get("image") for i in ([go] if go else []) + [lead] + c["items"] if i.get("image")]
+        img = (f'<img class="thumb" src="{escape(pics[0])}" alt="" loading="lazy" referrerpolicy="no-referrer" '
+               f'onerror="this.remove()">') if pics else ""
+        return (f'<article class="story" data-tabs="{tabs}">{img}<h3>{h}</h3>{p}'
                 f'<div class="meta">{sec}{badge}{t}</div>'
                 f'<div class="src">{"".join(links)}</div></article>')
 
@@ -622,6 +633,12 @@ h4.group {{ font:600 13px "Source Sans 3", system-ui, sans-serif; text-transform
   padding:14px 16px 12px; margin:10px 0; }}
 .story.alt {{ background:var(--card-b); border-color:var(--cardline-b); }}
 .story h3 {{ font:700 19px/1.3 "Source Serif 4", Georgia, serif; margin:0 0 4px; }}
+.story h3 a {{ color:inherit; text-decoration:none; }}
+.story h3 a:hover {{ text-decoration:underline; text-decoration-color:var(--link); }}
+.story {{ display:flow-root; }}
+.thumb {{ float:right; width:168px; aspect-ratio:3/2; object-fit:cover; border-radius:4px;
+  margin:2px 0 6px 14px; background:var(--badge); }}
+@media (max-width:600px) {{ .thumb {{ width:110px; margin-left:10px; }} }}
 .story p {{ margin:0 0 8px; font-size:16px; color:var(--fg); opacity:.85; }}
 .src {{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }}
 .src a {{ font:600 12px "Source Sans 3", system-ui, sans-serif; color:var(--link); text-decoration:none;

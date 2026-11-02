@@ -78,6 +78,49 @@ def parse_date(s):
     return d.astimezone(timezone.utc)
 
 
+MEDIA = "{http://search.yahoo.com/mrss/}"
+CONTENT = "{http://purl.org/rss/1.0/modules/content/}encoded"
+IMG_SRC = re.compile(r"""<img[^>]+src=["']([^"']+)""", re.I)
+NOT_PHOTO = re.compile(r"pixel|spacer|feedburner|doubleclick|gravatar|/ads?/|logo|\.gif(\?|$)", re.I)
+
+
+def find_image(it, *html):
+    """Picture the outlet attached to the item: media:thumbnail/content, enclosure, or the first <img> in the body."""
+    cands = []
+    for el in it.iter():
+        tag = el.tag if isinstance(el.tag, str) else ""
+        url = el.get("url") or ""
+        if tag in (MEDIA + "thumbnail", MEDIA + "content") or tag.endswith("}enclosure") or tag == "enclosure":
+            typ, medium = el.get("type") or "", el.get("medium") or ""
+            if tag.endswith("enclosure") and not typ.startswith("image"):
+                continue
+            if tag == MEDIA + "content" and not (medium == "image" or typ.startswith("image")
+                                                 or re.search(r"\.(jpe?g|png|webp)(\?|$)", url, re.I)):
+                continue
+            w = el.get("width")
+            if w and w.isdigit() and int(w) < 100:
+                continue
+            cands.append((int(w) if w and w.isdigit() else 0, url))
+        elif tag == "image" and (el.text or "").strip().startswith("http"):  # CBS: <image>url</image>
+            cands.append((0, el.text.strip()))
+        elif tag.endswith("}link") and el.get("rel") == "enclosure" and (el.get("type") or "").startswith("image"):
+            cands.append((0, el.get("href") or ""))
+    # largest declared size wins; an undeclared size keeps feed order
+    cands.sort(key=lambda c: -c[0])
+    urls = [u for _, u in cands]
+    for h in html:
+        urls += IMG_SRC.findall(unescape(h or ""))
+    for u in urls:
+        u = unescape(u).strip()
+        if u.startswith("//"):
+            u = "https:" + u
+        if u.startswith("http://"):
+            u = "https://" + u[7:]  # the page is https; plain http images would be blocked
+        if u.startswith("https://") and not NOT_PHOTO.search(u):
+            return u
+    return ""
+
+
 def parse_feed(data):
     root = ET.fromstring(data)
     dc = "{http://purl.org/dc/elements/1.1/}"
@@ -96,6 +139,7 @@ def parse_feed(data):
             "published": t("pubDate") or it.findtext(dc + "date"),
             "summary": strip_html(t("description"))[:700],
             "outlet": src_el.text.strip() if src_el is not None and src_el.text else "",
+            "image": "" if src_el is not None else find_image(it, t("description"), it.findtext(CONTENT)),
         })
     ns = "{http://www.w3.org/2005/Atom}"
     for it in root.iter(ns + "entry"):
@@ -106,6 +150,7 @@ def parse_feed(data):
             "published": it.findtext(ns + "published") or it.findtext(ns + "updated"),
             "summary": strip_html(it.findtext(ns + "summary"))[:700],
             "outlet": "",
+            "image": find_image(it, it.findtext(ns + "summary"), it.findtext(ns + "content")),
         })
     return out
 
