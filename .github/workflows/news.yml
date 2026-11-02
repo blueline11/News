@@ -27,6 +27,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - uses: actions/cache@v4   # og-images.json: article pictures already looked up
+        with:
+          path: og-images.json
+          key: og-images-${{ github.run_id }}
+          restore-keys: og-images-
       - name: Fetch feeds and build page
         run: |
           mkdir -p public

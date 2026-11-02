@@ -384,6 +384,61 @@ NAMES = {
 }
 
 
+OG_CACHE = os.path.join(BASE, "og-images.json")
+OG_IMG = re.compile(r"""<meta[^>]+(?:property|name)=["'](?:og:image|twitter:image)["'][^>]*>""", re.I)
+OG_URL = re.compile(r"""content=["']([^"']+)""", re.I)
+
+
+def page_image(url):
+    """The share picture an article page declares in its <head> (og:image), or ""."""
+    import urllib.request
+    from html import unescape
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                                               "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0 Safari/537.36"})
+    try:
+        with urllib.request.urlopen(req, timeout=8) as r:
+            head = r.read(300_000).decode("utf-8", "replace")
+    except Exception:
+        return ""
+    for tag in OG_IMG.findall(head):
+        m = OG_URL.search(tag)
+        if m:
+            u = unescape(m.group(1)).strip()
+            u = "https:" + u if u.startswith("//") else u
+            if u.startswith("https://") and not re.search(r"logo|default|placeholder|meta-image|fallback", u, re.I):
+                return u
+    return ""
+
+
+def fill_page_images(clusters):
+    """Stories whose feeds carried no picture: read og:image from one directly linked article.
+    Google News links are redirects with nothing to read, so they are skipped. Results are cached
+    in og-images.json (kept between GitHub runs) so each article page is fetched once."""
+    from concurrent.futures import ThreadPoolExecutor
+    try:
+        cache = json.load(open(OG_CACHE, encoding="utf-8"))
+    except Exception:
+        cache = {}
+    todo = {}
+    for c in clusters:
+        if any(i.get("image") for i in c["items"]):
+            continue
+        it = next((i for i in c["items"] if i["url"].startswith("https://")
+                   and "news.google.com" not in i["url"]), None)
+        if it:
+            todo.setdefault(it["url"], []).append(it)
+    new = [u for u in todo if u not in cache]
+    with ThreadPoolExecutor(16) as ex:
+        for u, img in zip(new, ex.map(page_image, new)):
+            cache[u] = img
+    for u, its in todo.items():
+        for it in its:
+            it["image"] = cache.get(u, "")
+    # keep only what this run used, so the file doesn't grow forever
+    json.dump({u: cache[u] for u in todo if u in cache}, open(OG_CACHE, "w", encoding="utf-8"))
+    print(f"page images: {len(new)} fetched, {sum(1 for u in todo if cache.get(u))}/{len(todo)} found")
+
+
 def main():
     if "--no-fetch" not in sys.argv:
         subprocess.run([sys.executable, "-I", os.path.join(BASE, "fetch-feeds.py"), "30"],
@@ -454,6 +509,8 @@ def main():
         secs = [i["section"] for i in own]
         c["section"] = max(set(secs), key=secs.count)
         c["time"] = max(i["published"] for i in c["items"])
+
+    fill_page_images(clusters)
 
     def story(c, show_sec=False):
         lead = c["lead"]
