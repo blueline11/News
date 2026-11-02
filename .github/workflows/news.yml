@@ -2,7 +2,7 @@ name: Update news
 
 on:
   schedule:
-    - cron: "*/30 * * * *"   # every 30 minutes (GitHub may run it a few minutes late)
+    - cron: "13,43 * * * *"   # every 30 minutes, off the :00/:30 rush (GitHub delays or skips top-of-hour runs)
   workflow_dispatch:          # "Run workflow" button = update now
   push:
     branches: [main]          # also rebuild when the scripts or sources change
