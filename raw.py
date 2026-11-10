@@ -50,7 +50,8 @@ FIN_GROUPS = [
     ("Companies & markets", None),
 ]
 # World/US stories that also belong under Finance
-MARKET_PULL = re.compile(r"\b(oil|crude|brent|opec|hormuz|tariffs?|sanctions?|trade (deal|war|talks)|"
+MARKET_PULL = re.compile(r"\b(oil (prices?|futures|output|supply|demand|exports?|markets?|majors?)|crude|brent|opec|"
+                         r"hormuz|tariffs?|sanctions?|trade (deal|war|talks)|"
                          r"fed|federal reserve|central bank|bond yields?|treasury yields?|"
                          r"export (ban|controls?)|stock markets?|wall st(reet)?)\b", re.I)
 TITLES = {"Top": "Top stories", "Lighter": "Lighter", "Curious": "Curious", "Ent": "Entertainment", "Soccer": "Soccer", "SportsTX": "Texas", "SportsTR": "Türk Sporu", "Music": "Music", "Arts": "Books & Arts", "TurkiyeTR": "Türkçe", "Health": "Health", "AI": "AI", "Austin": "Austin", "WorldPol": "World Politics", "Texas": "Texas & Austin", "Tech": "Tech", "Science": "Science & Health",
@@ -85,7 +86,8 @@ SYN = {"french": "france", "paris": "france", "ukrainian": "ukraine", "kyiv": "u
 # Google-News wire items all arrive as "World"; move obvious sport/business ones
 SPORT = re.compile(r"\b(nfl|nba|wnba|mlb|nhl|world series|alcs|nlcs|premier league|champions league|"
                    r"fifa|uefa|infantino|quarterback|qb|touchdown|tennis|golf(?! course)|cricket|odi|rugby|"
-                   r"grand prix|formula 1|f1|ronaldo|mourinho|coach|playoffs?|league|striker|"
+                   r"grand prix|formula 1|f1|ronaldo|mourinho|coach(es|ing)?|defensive coordinator|wide receivers?|wr|"
+                   r"playoffs?|league|striker|six nations|nations championship|bowl games?|transfer portal|"
                    r"olympic|gymnastics|boxing|ufc|49ers|rays|brewers|eagles|dodgers|football|basketball|baseball|"
                    r"softball|volleyball|soccer|ncaa|big 12|ole miss|quarterbacks?|longhorns|aggies|cowboys|"
                    r"texans|astros|mavericks|mavs)\b", re.I)
@@ -173,7 +175,8 @@ SCI = re.compile(
 # high-volume feeds: newest N each
 SOURCE_CAPS = {"AP Oddities": 12, "Mental Floss": 15, "TMZ": 12, "People": 15, "Entertainment Weekly": 15,
                "Polygon": 12, "IGN": 12, "Vulture": 12, "E! News": 15, "Phys.org": 15, "Medical Xpress": 15, "Nature": 10, "AP Sports": 25, "The Athletic": 30,
-               "BBC Football": 25, "Houston Chronicle Sports": 20, "A Spor": 20, "Yahoo Sports": 30}
+               "BBC Football": 25, "Houston Chronicle Sports": 20, "A Spor": 20, "Yahoo Sports": 30,
+               "Benzinga": 15, "IBD": 10}  # stock-tip sites: a few headlines, not a quarter of Finance
 # Turkish-language outlets: sport, celebrity and lifestyle pages are not news here
 TR_SPORT = re.compile(
     r"(\bspor\b|maç|galatasaray|fenerbahçe|beşiktaş|trabzonspor|süper lig|futbol|basketbol|voleybol|"
@@ -218,7 +221,7 @@ LIGHT_SRC = {"Lighter", "Curious", "Ent"}
 FILM = re.compile(
     r"\b(films?|movies?|box office|hollywood|oscars?|emmys?|golden globes?|cannes|sundance|tv series|"
     r"tv shows?|sitcom|showrunner|actor|actress|screenplay|documentary|streaming series|netflix|hbo|"
-    r"disney\+|season \d+|the simpsons|anchor)\b", re.I)
+    r"disney\+|season \d+|the simpsons|anchor|dc studios|marvel|skydance|warner bros)\b", re.I)
 MUSIC = re.compile(
     r"\b(albums?|singers?|rappers?|bands?|concerts?|world tour|grammys?|songs?|music|musicians?|"
     r"billboard|setlist|festival lineup|pop star|k-pop|orchestra|symphony)\b", re.I)
@@ -507,12 +510,16 @@ def main():
         # a city paper's reprint of a wire story shouldn't pull the story into Texas
         own = [i for i in c["items"] if i["source"] not in CITY_PAPERS] or c["items"]
         secs = [i["section"] for i in own]
-        c["section"] = max(set(secs), key=secs.count)
+        # wire copy lands in "World" by default; a desk that knows the topic (Sports, Finance...) outweighs it
+        c["section"] = max(set(secs), key=lambda s: secs.count(s) * (0.5 if s == "World" else 1))
         c["time"] = max(i["published"] for i in c["items"])
 
     fill_page_images(clusters)
 
-    def story(c, show_sec=False):
+    for k, c in enumerate(clusters):
+        c["id"] = k
+
+    def story(c):
         lead = c["lead"]
         seen, links = set(), []
         for it in c["items"]:
@@ -524,7 +531,7 @@ def main():
         t = (f'<time datetime="{d.isoformat()}" title="{fmt(d, "%a %#I:%M %p")}">'
              f'{fmt(d, "%a %#I:%M %p")}</time>') if d else ""
         badge = f'<span class="n">{c["n"]} outlets</span>' if c["n"] > 1 else ""
-        sec = f'<span class="sec">{escape(TITLES.get(c["section"], c["section"]))}</span>' if show_sec else ""
+        sec = f'<span class="sec">{escape(TITLES.get(c["section"], c["section"]))}</span>'
         summ = lead["summary"]
         if summ.lower().startswith(lead["title"].lower()[:30]):
             summ = ""
@@ -532,7 +539,8 @@ def main():
         p = f"<p>{escape(summ)}</p>" if summ else ""
         tabs = " ".join(sorted(c["tabs"]))
         # headline opens the story at the biggest free outlet that carried it
-        go = next((it for name in prefer for it in c["items"] if it["label"] == name), None)             or next((it for it in c["items"] if it["label"] not in paywalled), None)
+        go = next((it for name in prefer for it in c["items"] if it["label"] == name), None) \
+            or next((it for it in c["items"] if it["label"] not in paywalled), None)
         h = escape(lead["title"])
         if go:
             h = (f'<a href="{escape(go["url"])}" target="_blank" rel="noopener" '
@@ -540,7 +548,7 @@ def main():
         pics = [i.get("image") for i in ([go] if go else []) + [lead] + c["items"] if i.get("image")]
         img = (f'<img class="thumb" src="{escape(pics[0])}" alt="" loading="lazy" referrerpolicy="no-referrer" '
                f'onerror="this.remove()">') if pics else ""
-        return (f'<article class="story" data-tabs="{tabs}">{img}<h3>{h}</h3>{p}'
+        return (f'<article class="story" data-id="{c["id"]}" data-tabs="{tabs}">{img}<h3>{h}</h3>{p}'
                 f'<div class="meta">{sec}{badge}{t}</div>'
                 f'<div class="src">{"".join(links)}</div></article>')
 
@@ -560,7 +568,8 @@ def main():
     # World/US news (oil, tariffs, the Fed...), plus Top for the most-covered ones
     for c in clusters:
         c["tabs"] = {c["section"].lower()}
-        if c["section"] != "Finance" and MARKET_PULL.search(c["lead"]["title"]):
+        if (c["section"] not in ("Finance", "Sports", "Soccer", "SportsTX", "SportsTR", "Culture", "Ent")
+                and MARKET_PULL.search(c["lead"]["title"])):
             c["tabs"].add("finance")
     top = sorted([c for c in clusters if c["n"] >= 3], key=lambda c: (-c["n"], c["time"]))[:10]
     for c in top:
@@ -573,7 +582,7 @@ def main():
         if sec == "Top":
             cs = top
             inner = ['<p class="muted lede">Stories carried by 3 or more outlets.</p>']
-            inner += [story(c, True) for c in cs]
+            inner += [story(c) for c in cs]
         elif sec == "Finance":
             cs = [c for c in clusters if "finance" in c["tabs"]]
             inner = []
@@ -594,15 +603,7 @@ def main():
             tabbar.append(f'<button data-tab="{sid}">{escape(name)}</button>')
         panels.append(f'<section class="panel" data-tab="{sid}" hidden>' + "\n".join(inner) + "</section>")
 
-    # "Latest first" view: every story in one timeline, hour headings; filtered by tab in JS
-    latest, last_hour = [], None
-    for c in sorted([c for c in clusters if c["time"]], key=lambda c: c["time"], reverse=True):
-        d = datetime.fromisoformat(c["time"]).astimezone(CT)
-        hour = fmt(d, "%A %#I %p")
-        if hour != last_hour:
-            latest.append(f'<h4 class="hour">{escape(hour)}</h4>')
-            last_hour = hour
-        latest.append(story(c, True))
+    # "Latest first" is built in the browser from the cards above (buildLatest), so each story ships once
 
     board = strip = radar_html = ""
     if not os.environ.get("NEWS_NO_MARKETS"):
@@ -625,7 +626,7 @@ def main():
         when=escape(fmt(fetched, "%A, %B %d · %#I:%M %p CT")),
         total=total, raw=len(snap["items"]), hours=snap["hours"],
         tabbar="".join(tabbar), board=board, strip=strip, radar=radar_html, panels="\n".join(panels),
-        latest="\n".join(latest), hint=HINT, failed=escape(failed),
+        hint=HINT, failed=escape(failed),
         board_css=BOARD_CSS)
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     open(OUT, "w", encoding="utf-8").write(html)
@@ -660,14 +661,14 @@ TEMPLATE = """<!doctype html>
   --card:#211f25; --card-b:#1c2726; --cardline:#3a3740; --cardline-b:#2f4a46; --edge:#8cc7c0; --edge-b:#e0a56f; --shadow:none; }}
 * {{ box-sizing:border-box; }}
 body {{ margin:0; background:var(--bg); color:var(--fg);
-  font:17px/1.55 "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif; }}
+  font:19px/1.55 "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif; }}
 .wrap {{ max-width:760px; margin:0 auto; padding:0 16px 80px; }}
 header {{ padding:28px 0 8px; }}
 h1 {{ margin:0; font:700 32px "Source Serif 4", Georgia, serif; letter-spacing:-.01em; }}
-.sub {{ color:var(--muted); font:14px "Source Sans 3", system-ui, sans-serif; margin-top:4px; }}
+.sub {{ color:var(--muted); font:16px "Source Sans 3", system-ui, sans-serif; margin-top:4px; }}
 .bar {{ position:sticky; top:0; z-index:3; background:var(--bg); border-bottom:1px solid var(--line);
   padding:8px 0; }}
-.tabs {{ display:flex; flex-wrap:wrap; gap:6px; font:14px "Source Sans 3", system-ui, sans-serif; }}
+.tabs {{ display:flex; flex-wrap:wrap; gap:6px; font:17px "Source Sans 3", system-ui, sans-serif; }}
 /* phones: one row that scrolls sideways, right edge fades to show there is more */
 @media (max-width:600px) {{ .tabs {{ flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; padding-right:24px;
   -webkit-mask-image:linear-gradient(to right, #000 85%, transparent); mask-image:linear-gradient(to right, #000 85%, transparent); }} }}
@@ -675,43 +676,45 @@ h1 {{ margin:0; font:700 32px "Source Serif 4", Georgia, serif; letter-spacing:-
 .tabs button {{ flex:none; font:inherit; padding:6px 12px; border-radius:16px; cursor:pointer;
   border:1px solid var(--line); background:transparent; color:var(--muted); }}
 .tabs button.on {{ background:var(--accent); border-color:var(--accent); color:var(--bg); }}
-.views {{ display:flex; gap:14px; margin-top:8px; font:13px "Source Sans 3", system-ui, sans-serif; }}
+.views {{ display:flex; gap:16px; margin-top:8px; font:16px "Source Sans 3", system-ui, sans-serif; }}
 .views button {{ font:inherit; border:0; background:none; padding:2px 0; cursor:pointer; color:var(--muted);
   border-bottom:2px solid transparent; }}
 .views button.on {{ color:var(--fg); border-bottom-color:var(--accent); }}
 .panel {{ padding-top:10px; }}
-h3.fgroup {{ font:600 15px "Source Sans 3", system-ui, sans-serif; color:var(--accent); margin:26px 0 0;
+h3.fgroup {{ font:600 18px "Source Sans 3", system-ui, sans-serif; color:var(--accent); margin:26px 0 0;
   padding-bottom:4px; border-bottom:2px solid var(--accent); }}
-h4.group {{ font:600 13px "Source Sans 3", system-ui, sans-serif; text-transform:uppercase; letter-spacing:.06em;
+h4.group {{ font:600 15px "Source Sans 3", system-ui, sans-serif; text-transform:uppercase; letter-spacing:.06em;
   color:var(--muted); margin:18px 0 2px; }}
-.count {{ font:13px "Source Sans 3", system-ui, sans-serif; color:var(--muted); margin-left:10px; font-weight:400; }}
-.lede {{ font:14px "Source Sans 3", system-ui, sans-serif; margin:10px 0 0; }}
+.count {{ font:15px "Source Sans 3", system-ui, sans-serif; color:var(--muted); margin-left:10px; font-weight:400; }}
+.lede {{ font:17px "Source Sans 3", system-ui, sans-serif; margin:10px 0 0; }}
 .story {{ background:var(--card); border:1px solid var(--cardline); border-radius:6px;
   padding:14px 16px 12px; margin:10px 0; }}
 .story.alt {{ background:var(--card-b); border-color:var(--cardline-b); }}
-.story h3 {{ font:700 19px/1.3 "Source Serif 4", Georgia, serif; margin:0 0 4px; }}
+.story h3 {{ font:700 22px/1.3 "Source Serif 4", Georgia, serif; margin:0 0 4px; }}
 .story h3 a {{ color:inherit; text-decoration:none; }}
 .story h3 a:hover {{ text-decoration:underline; text-decoration-color:var(--link); }}
 .story {{ display:flow-root; }}
 [hidden] {{ display:none !important; }}  /* flow-root above would otherwise un-hide filtered cards */
-.thumb {{ float:right; width:168px; aspect-ratio:3/2; object-fit:cover; border-radius:4px;
+.thumb {{ float:right; width:190px; aspect-ratio:3/2; object-fit:cover; border-radius:4px;
   margin:2px 0 6px 14px; background:var(--badge); }}
 @media (max-width:600px) {{ .thumb {{ width:110px; margin-left:10px; }} }}
-.story p {{ margin:0 0 8px; font-size:16px; color:var(--fg); opacity:.85; }}
+.story p {{ margin:0 0 8px; font-size:19px; color:var(--fg); opacity:.85; }}
 .src {{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }}
-.src a {{ font:600 12px "Source Sans 3", system-ui, sans-serif; color:var(--link); text-decoration:none;
-  border:1px solid var(--line); border-radius:999px; padding:2px 10px; background:var(--bg); }}
+.src a {{ font:600 15px "Source Sans 3", system-ui, sans-serif; color:var(--link); text-decoration:none;
+  border:1px solid var(--line); border-radius:999px; padding:3px 11px; background:var(--bg); }}
 .src a:hover {{ border-color:var(--link); }}
-.meta {{ font:13px "Source Sans 3", system-ui, sans-serif; color:var(--muted); display:flex; flex-wrap:wrap; gap:4px 12px; align-items:center; }}
+.meta {{ font:16px "Source Sans 3", system-ui, sans-serif; color:var(--muted); display:flex; flex-wrap:wrap; gap:4px 12px; align-items:center; }}
 time {{ color:var(--muted); }}
-.n, .sec {{ background:var(--badge); color:var(--accent); padding:1px 8px; border-radius:999px; font-weight:700; font-size:11px; }}
-h4.hour {{ font:600 13px "Source Sans 3", system-ui, sans-serif; text-transform:uppercase; letter-spacing:.06em;
+.sec {{ display:none; }}  /* section badge only where sections mix */
+#v-latest .sec, .panel[data-tab="top"] .sec {{ display:inline; }}
+.n, .sec {{ background:var(--badge); color:var(--accent); padding:1px 8px; border-radius:999px; font-weight:700; font-size:14px; }}
+h4.hour {{ font:600 15px "Source Sans 3", system-ui, sans-serif; text-transform:uppercase; letter-spacing:.06em;
   color:var(--accent); margin:22px 0 0; padding-bottom:4px; border-bottom:1px solid var(--line); }}
 details {{ margin-top:8px; }}
-summary {{ cursor:pointer; color:var(--link); font:14px "Source Sans 3", system-ui, sans-serif; padding:10px 0; }}
+summary {{ cursor:pointer; color:var(--link); font:17px "Source Sans 3", system-ui, sans-serif; padding:10px 0; }}
 .boardcard {{ background:var(--card); border-radius:12px; padding:4px 14px 10px; margin-top:14px;
   box-shadow:var(--shadow); }}
-footer {{ margin-top:36px; color:var(--muted); font:13px/1.5 "Source Sans 3", system-ui, sans-serif; }}
+footer {{ margin-top:36px; color:var(--muted); font:15px/1.5 "Source Sans 3", system-ui, sans-serif; }}
 {board_css}
 </style>
 </head>
@@ -737,7 +740,6 @@ footer {{ margin-top:36px; color:var(--muted); font:13px/1.5 "Source Sans 3", sy
 {panels}
 </div>
 <div id="v-latest" hidden>
-{latest}
 </div>
 <footer>Built by script only: headlines are grouped by word overlap and ranked by how many outlets
 carry them. Summaries are the outlets' own feed text. Page reloads itself every 15 minutes.
@@ -752,6 +754,34 @@ try {{ Object.assign(st, JSON.parse(localStorage.getItem("newsState") || "{{}}")
 const tabs = [...document.querySelectorAll(".tabs button")];
 if (st.tab === "markets" || st.tab === "radar") {{ st.view = st.tab; st.tab = "finance"; }}  // these used to be tabs
 if (!tabs.some(b => b.dataset.tab === st.tab)) st.tab = tabs[0].dataset.tab;
+// one timeline of every story, newest first, hour headings in Central time; built on first use
+let latestBuilt = false;
+function buildLatest() {{
+  if (latestBuilt) return;
+  latestBuilt = true;
+  const seen = new Set(), cards = [];
+  document.querySelectorAll(".panel article.story").forEach(a => {{
+    const t = a.querySelector("time");
+    if (!t || seen.has(a.dataset.id)) return;
+    seen.add(a.dataset.id);
+    cards.push([new Date(t.getAttribute("datetime")), a]);
+  }});
+  cards.sort((x, y) => y[0] - x[0]);
+  const hourOf = new Intl.DateTimeFormat("en-US", {{ timeZone: "America/Chicago", weekday: "long", hour: "numeric" }});
+  const box = document.getElementById("v-latest");
+  let last = "";
+  for (const [d, a] of cards) {{
+    const p = Object.fromEntries(hourOf.formatToParts(d).map(x => [x.type, x.value]));
+    const h = `${{p.weekday}} ${{p.hour}} ${{p.dayPeriod}}`;
+    if (h !== last) {{
+      const el = document.createElement("h4");
+      el.className = "hour"; el.textContent = h; box.appendChild(el); last = h;
+    }}
+    const c = a.cloneNode(true);
+    c.hidden = false; c.classList.remove("alt");
+    box.appendChild(c);
+  }}
+}}
 function render() {{
   tabs.forEach(b => b.classList.toggle("on", b.dataset.tab === st.tab));
   if (st.tab === "worldpol") {{ st.tab = "politics"; st.view = "world"; }}  // used to be a tab
@@ -775,6 +805,7 @@ function render() {{
   const panel = sp && st.view in sp ? sp[st.view] : st.tab;
   document.querySelectorAll(".panel").forEach(p => p.hidden = p.dataset.tab !== panel);
   if (st.view === "latest") {{
+    buildLatest();
     let head = null, any = false;
     const close = () => {{ if (head) head.hidden = !any; }};
     for (const el of document.getElementById("v-latest").children) {{

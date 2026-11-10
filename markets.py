@@ -154,9 +154,9 @@ def board_html():
 
 BOARD_CSS = """
 .board { margin-top:6px; }
-table.mk { width:100%; border-collapse:collapse; table-layout:fixed; font:14px "Source Sans 3", system-ui, sans-serif; }
+table.mk { width:100%; border-collapse:collapse; table-layout:fixed; font:16px "Source Sans 3", system-ui, sans-serif; }
 col.c-px { width:84px; } col.c-ch { width:72px; } col.c-sp { width:92px; }
-table.mk th { text-align:right; font-weight:500; color:var(--muted); font-size:12px; padding:4px 6px; }
+table.mk th { text-align:right; font-weight:500; color:var(--muted); font-size:14px; padding:4px 6px; }
 table.mk td { padding:5px 6px; border-bottom:1px solid var(--line); text-align:right; white-space:nowrap; }
 table.mk td.nm { text-align:left; white-space:normal; }
 table.mk td.px { font-variant-numeric:tabular-nums; }
@@ -165,18 +165,18 @@ td.ch { font-variant-numeric:tabular-nums; }
 td.sp { width:84px; }
 svg.spark { width:80px; height:22px; display:block; }
 svg.spark polyline { fill:none; stroke-width:1.5; stroke:currentColor; }
-.muted { color:var(--muted); } .small { font-size:12px; margin-top:8px; }
+.muted { color:var(--muted); } .small { font-size:14px; margin-top:8px; }
 .strip { display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; padding:12px 0 4px; }
 .strip::-webkit-scrollbar { display:none; }
 .tile { flex:none; display:flex; flex-direction:column; min-width:86px; padding:8px 10px;
-  background:var(--card); border-radius:10px; box-shadow:var(--shadow); font:13px "Source Sans 3", system-ui, sans-serif; }
-.tl { color:var(--muted); font-size:12px; } .tp { font-weight:700; font-size:15px; font-variant-numeric:tabular-nums; }
-.tc { font-size:12.5px; font-weight:600; font-variant-numeric:tabular-nums; }
-.more { flex:none; align-self:center; font:600 13px "Source Sans 3", system-ui, sans-serif; color:var(--link); background:none;
+  background:var(--card); border-radius:10px; box-shadow:var(--shadow); font:15px "Source Sans 3", system-ui, sans-serif; }
+.tl { color:var(--muted); font-size:14px; } .tp { font-weight:700; font-size:17px; font-variant-numeric:tabular-nums; }
+.tc { font-size:14px; font-weight:600; font-variant-numeric:tabular-nums; }
+.more { flex:none; align-self:center; font:600 15px "Source Sans 3", system-ui, sans-serif; color:var(--link); background:none;
   border:1px dashed var(--line); border-radius:10px; padding:16px 12px; cursor:pointer; }
 @media (max-width:520px) { .wk { display:none; } col.c-px { width:60px; } col.c-ch { width:52px; }
   col.c-sp { width:46px; } svg.spark { width:44px !important; } td.sp { width:60px; } svg.spark { width:56px; }
-  table.mk { font-size:13px; } table.mk td { padding:5px 3px; } }
+  table.mk { font-size:15px; } table.mk td { padding:5px 3px; } }
 """
 
 if __name__ == "__main__":
