@@ -693,6 +693,7 @@ h4.group {{ font:600 13px "Source Sans 3", system-ui, sans-serif; text-transform
 .story h3 a {{ color:inherit; text-decoration:none; }}
 .story h3 a:hover {{ text-decoration:underline; text-decoration-color:var(--link); }}
 .story {{ display:flow-root; }}
+[hidden] {{ display:none !important; }}  /* flow-root above would otherwise un-hide filtered cards */
 .thumb {{ float:right; width:168px; aspect-ratio:3/2; object-fit:cover; border-radius:4px;
   margin:2px 0 6px 14px; background:var(--badge); }}
 @media (max-width:600px) {{ .thumb {{ width:110px; margin-left:10px; }} }}
