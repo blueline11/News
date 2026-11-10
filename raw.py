@@ -183,7 +183,12 @@ TR_SPORT = re.compile(
     r"teknik direktör|transfer|milli takım|şampiyonlar ligi|avrupa ligi|gol\b|hakem)", re.I)
 TR_SKIP = re.compile(
     r"(burç|magazin|ünlü|dizi|reyting|tarif|hava durumu|altın fiyatları|"
-    r"döviz kuru|canlı izle|kaç tl|ne zaman|nedir\?)", re.I)
+    r"döviz kuru|canlı izle|kaç tl|ne zaman|nedir\?|"
+    # evergreen search-bait pages republished every day with a new date
+    r"deprem mi oldu|son depremler|tatil mi\?|sonuçları (açıklandı|sorgula)|bilet sorgula|sayısal loto|"
+    r"on numara|şans topu|süper loto|milli piyango|neler oldu\?|son bölüm|yeni bölüm|bölüm izle|"
+    r"kesintisiz izle|masterchef|survivor|kataloğu|tv.de ne var|ziyaret saatleri|trafiğe kapalı yollar|"
+    r"ne kadar zamlanacak)", re.I)
 TR_CAP = 15
 # sports sub-views. Texas teams first: "Spurs" is San Antonio's before it is Tottenham's
 TX_TEAMS = re.compile(
